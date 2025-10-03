@@ -1,0 +1,229 @@
+---
+title: "Etapa1"
+author: "Alys Jiménez"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(printr)
+
+setwd("/Users/alysjime/Downloads")
+getwd()
+datos_2024 <- read.csv("Datos_molec_2024-1.csv")
+
+
+
+str(datos_2024)    # Muestra la estructura de la base de datos
+names(datos_2024)  # Muestra la lista de nombres de las variables
+head(datos_2024)   # Muestra las primeras 6 filas
+View(datos_2024)   # Muestra los datos en una nueva pestaña
+print(dim(datos_2024))
+summary(datos_2024) # Revisa si hay datos faltantes (NA's)
+
+
+# 1. Número de encuestas por estado
+estados_n_2024 <- datos_2024 %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2024)
+
+# 2. Número de encuestas por género
+sexo_n_2024 <- datos_2024 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2024)
+
+# 3. Por nivel educativo
+datos_2024 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+# 4. Conteo por edad
+datos_2024 %>%
+  count(edad) %>%
+  arrange(edad)
+```
+
+```{r}
+
+datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+
+str(datos_2023)    # Muestra la estructura de la base de datos
+names(datos_2023)  # Muestra la lista de nombres de las variables
+head(datos_2023)   # Muestra las primeras 6 filas
+View(datos_2023)   # Muestra los datos en una nueva pestaña
+print(dim(datos_2023))
+summary(datos_2023) # Revisa si hay datos faltantes 
+
+
+# 1. Número de encuestas por estado
+estados_n_2023 <- datos_2023 %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2023)
+
+# 2. Número de encuestas por género
+sexo_n_2023 <- datos_2023 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2023)
+
+# 3. Por nivel educativo
+datos_2023 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+# 4. Conteo por edad
+datos_2023 %>%
+  count(edad) %>%
+  arrange(edad)
+```
+
+```{r}
+
+datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+
+str(datos_2022)    # Muestra la estructura de la base de datos
+names(datos_2022)  # Muestra la lista de nombres de las variables
+head(datos_2022)   # Muestra las primeras 6 filas
+View(datos_2022)   # Muestra los datos en una nueva pestaña
+print(dim(datos_2022))
+summary(datos_2022) # Revisa si hay datos faltantes 
+
+
+# 1. Número de encuestas por estado
+estados_n_2022 <- datos_2022 %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2022)
+
+# 2. Número de encuestas por género
+sexo_n_2022 <- datos_2022 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2022)
+
+# 3. Por nivel educativo
+datos_2022 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+# 4. Conteo por edad
+datos_2022 %>%
+  count(edad) %>%
+  arrange(edad)
+```
+
+
+```{r}
+
+datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+
+str(datos_2021)    # Muestra la estructura de la base de datos
+names(datos_2021)  # Muestra la lista de nombres de las variables
+head(datos_2021)   # Muestra las primeras 6 filas
+View(datos_2021)   # Muestra los datos en una nueva pestaña
+print(dim(datos_2021))
+summary(datos_2021) # Revisa si hay datos faltantes 
+
+
+# 1. Número de encuestas por estado
+estados_n_2021 <- datos_2021 %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2021)
+
+# 2. Número de encuestas por género
+sexo_n_2021 <- datos_2021 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2021)
+
+# 3. Por nivel educativo
+datos_2021 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+# 4. Conteo por edad
+datos_2021 %>%
+  count(edad) %>%
+  arrange(edad)
+```
+```{r}
+
+datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+
+str(datos_2020)    # Muestra la estructura de la base de datos
+names(datos_2020)  # Muestra la lista de nombres de las variables
+head(datos_2020)   # Muestra las primeras 6 filas
+View(datos_2020)    # Muestra los datos en una nueva pestaña
+print(dim(datos_2020) )
+summary(datos_2020)  # Revisa si hay datos faltantes 
+
+
+# 1. Número de encuestas por estado
+estados_n_2020 <- (datos_2020)  %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2020)
+
+# 2. Número de encuestas por género
+sexo_n_2020 <- datos_2020 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2020)
+
+# 3. Por nivel educativo
+datos_2020 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+# 4. Conteo por edad
+datos_2020 %>%
+  count(edad) %>%
+  arrange(edad)
+```
+```{r}
+
+datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+
+str(datos_2019)    # Muestra la estructura de la base de datos
+names(datos_2019)  # Muestra la lista de nombres de las variables
+head(datos_2019)    # Muestra las primeras 6 filas
+View(datos_2019)     # Muestra los datos en una nueva pestaña
+print(dim(datos_2019))
+summary(datos_2019)  # Revisa si hay datos faltantes 
+
+
+# 1. Número de encuestas por estado
+estados_n_2019 <- (datos_2019)  %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2019)
+
+# 2. Número de encuestas por género
+sexo_n_2019 <- datos_2019 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2019)
+
+# 3. Por nivel educativo
+datos_2019 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+# 4. Conteo por edad
+datos_2019 %>%
+  count(edad) %>%
+  arrange(edad)
+```
+
+
+
+
+
+
+
