@@ -1,0 +1,129 @@
+---
+title: "Etapa 2"
+author: "Alys Jiménez"
+date: "`r Sys.Date()`"
+output: html_document
+---
+```{r}
+library(dplyr)
+library(ggplot2)
+library(printr)
+
+setwd("/Users/alysjime/Downloads")
+getwd()
+datos_2024 <- read.csv("Datos_molec_2024-1.csv")
+datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+```
+
+```{r}
+#Hacer nuevas bases con solo las variables por analizar
+d_2024 <- datos_2024 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2023 <- datos_2023 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2022 <- datos_2022 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2021 <- datos_2021 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2020 <- datos_2020 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2019 <- datos_2019 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+```
+
+
+```{r}
+#Añadir columna de año para poder combinar y comparar los datos
+d_2024 <- d_2024 %>% 
+  mutate(anio= 2024)
+
+d_2023 <- d_2023 %>% 
+  mutate(anio= 2023)
+
+d_2022 <- d_2022 %>% 
+  mutate(anio= 2022)
+
+d_2021 <- d_2021 %>% 
+  mutate(anio= 2021)
+
+d_2020 <- d_2020 %>% 
+  mutate(anio= 2020)
+
+d_2019 <- d_2019 %>% 
+  mutate(anio= 2019)
+
+#Combinar todos los años
+datos <- bind_rows(d_2024,d_2023,d_2022,d_2021,d_2020,d_2019)
+glimpse(datos)
+
+```
+
+```{r}
+#Limpiar datos, convertir b a NA
+```
+
+
+```{r}
+#A groupar por generación
+datos <- datos %>%
+  mutate(
+    generacion = case_when(
+      edad >= 18 & edad <= 27 ~ "Gen Z",
+      edad >= 28 & edad <= 42 ~ "Millennial",
+      edad >= 43 & edad <= 58 ~ "Gen X",
+      edad >= 59             ~ "Boomer"
+    )
+  )
+#Analizar por generación
+
+  
+```
+
+
+```{r}
+#Remplazar 1 y 2 con mujer y hombre
+datos <- datos %>%
+    mutate(sexo = case_when(
+      sexo == 1 ~ "Hombre",
+      sexo == 2 ~ "Mujer"
+  )
+    )
+#Analisis por Sexo
+
+datos %>% 
+ count(p4, sort=TRUE)
+
+rows_with_b <- datos %>%
+  filter(p2 == "b")
+
+# Promedio de libros leidos por sexo
+books_by_sex_year <- datos %>%
+  group_by(anio, sexo) %>%
+  summarize(libros_promedio = mean(p4, na.rm = TRUE), .groups = 'drop')
+
+# Grafica de barra
+ggplot(books_by_sex_year, aes(x = anio, y = libros_promedio, fill = sexo)) +
+  geom_col(position = "dodge") + 
+  labs(
+    title = "Promedio Anual de Libros Leídos por Sexo",
+    x = "Año",
+    y = "Número de Libros Promedio",
+    fill = "Sexo"
+  )
+```
+
+```{r}
+
+```
+
+
