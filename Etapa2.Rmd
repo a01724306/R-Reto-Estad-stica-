@@ -69,11 +69,6 @@ glimpse(datos)
 ```
 
 ```{r}
-#Limpiar datos, convertir b a NA
-```
-
-
-```{r}
 #A groupar por generación
 datos <- datos %>%
   mutate(
@@ -84,9 +79,6 @@ datos <- datos %>%
       edad >= 59             ~ "Boomer"
     )
   )
-#Analizar por generación
-
-  
 ```
 
 
@@ -99,19 +91,18 @@ datos <- datos %>%
   )
     )
 #Analisis por Sexo
-
 datos %>% 
  count(p4, sort=TRUE)
 
 rows_with_b <- datos %>%
   filter(p2 == "b")
 
-# Promedio de libros leidos por sexo
+#Promedio de libros leidos por sexo
 books_by_sex_year <- datos %>%
   group_by(anio, sexo) %>%
-  summarize(libros_promedio = mean(p4, na.rm = TRUE), .groups = 'drop')
+  summarize(libros_promedio = mean(p4), .groups = 'drop')
 
-# Grafica de barra
+#Grafica de barra
 ggplot(books_by_sex_year, aes(x = anio, y = libros_promedio, fill = sexo)) +
   geom_col(position = "dodge") + 
   labs(
@@ -123,7 +114,195 @@ ggplot(books_by_sex_year, aes(x = anio, y = libros_promedio, fill = sexo)) +
 ```
 
 ```{r}
+books_by_gen_year <- datos %>%
+  group_by(anio, generacion) %>%
+  summarize(libros_promedio = mean(p4), .groups = 'drop') %>%
+  filter(!is.na(generacion))
 
+ggplot(books_by_gen_year, aes(x = anio, y = libros_promedio, color = generacion)) +
+  geom_line(linewidth = 1.5) +
+  geom_point(size = 3) +
+  labs(
+    title = "Promedio Anual de Libros Leídos por Generación",
+    x = "Año",
+    y = "Número de Libros Promedio",
+    color = "Generación"
+  )
 ```
 
+```{r}
+datos <- datos %>%
+  mutate(nivel_educativo_detallado = case_when(
+    nivel == 0 ~ "Ninguno",
+    nivel == 01 ~ "Preescolar",
+    nivel == 02 ~ "Primaria",
+    nivel == 03 ~ "Secundaria",
+    nivel == 04 ~ "Preparatoria",
+    nivel == 05 ~ "Normal básica",
+    nivel == 06 ~ "Carrera técnica",
+    nivel == 07 ~ "Profesional",
+    nivel == 08 ~ "Maestría",
+    nivel == 09 ~ "Doctorado",
+    nivel == 99 ~ "No sabe"
+  ))
+
+books_by_education_detailed <- datos %>%
+  group_by(anio, nivel_educativo_detallado) %>%
+  summarize(libros_promedio = mean(p4), .groups = 'drop') %>%
+  filter(nivel_educativo_detallado != "No sabe" & !is.na(nivel_educativo_detallado))
+
+ggplot(books_by_education_detailed, aes(x = anio, y = libros_promedio, color = nivel_educativo_detallado)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5) +
+  labs(
+    title = "Promedio Anual de Libros Leídos por Nivel Educativo",
+    x = "Año",
+    y = "Número de Libros Promedio",
+    color = "Nivel Educativo"
+  )
+```
+
+```{r}
+datos <- datos %>%
+  mutate(
+    asistencia_nino = case_when(
+      p33_1 == "1" ~ "Sí lo llevaban",
+      p33_1 == "2" ~ "No lo llevaban",
+    ),
+    asistio_biblioteca_reciente = case_when(
+      p33_3 == "1" ~ "Sí",
+      p33_3 == "2" ~ "No",
+    ),
+    asistio_libreria_reciente = case_when(
+      p33_4 == "1" ~ "Sí",
+      p33_4 == "2" ~ "No",
+    )
+  )
+
+#Calcular el porcentaje que SÍ asistió a bibliotecas, según si lo llevaban o no de niño
+library_habits <- datos %>%
+  filter(!is.na(asistencia_nino) & !is.na(asistio_biblioteca_reciente)) %>%
+  group_by(asistencia_nino) %>%
+  summarize(
+    porcentaje_asistencia = mean(asistio_biblioteca_reciente == "Sí") * 100
+  )
+
+ggplot(library_habits, aes(x = asistencia_nino, y = porcentaje_asistencia, fill = asistencia_nino)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(porcentaje_asistencia, 1), "%")), vjust = -0.5) +
+  labs(
+    title = "Asistencia Reciente a Bibliotecas según la Experiencia en la Niñez (2019-2024)",
+    x = "De niño, ¿lo llevaban a bibliotecas o librerías?",
+    y = "% que SÍ asistió en los últimos 3 meses"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+#datos <- datos %>%
+  #mutate(p26 = as.numeric(na_if(p26, "b")))
+
+#Minutos de lectura continuos según la generación
+ggplot(datos, aes(x = generacion, y = p26, fill = generacion)) +
+  geom_boxplot(na.rm = TRUE) +
+  coord_cartesian(ylim = c(0, 180)) +
+  labs(
+    title = "Minutos de Lectura Continua por Generación (2019-2024)",
+    x = "Generación",
+    y = "Minutos Continuos de Lectura"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+#Diccionario de entidades
+entidad_nombres <- data.frame(
+  entidad = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
+              "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", 
+              "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", 
+              "31", "32"),
+  nombre_entidad = c("Aguascalientes", "Baja California", "Baja California Sur", "Campeche", 
+                     "Coahuila", "Colima", "Chiapas", "Chihuahua", "Ciudad de México", 
+                     "Durango", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", 
+                     "México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", 
+                     "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", 
+                     "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", 
+                     "Veracruz", "Yucatán", "Zacatecas")
+)
+
+datos <- datos %>% mutate(entidad = formatC(entidad, width=2, flag="0"))
+
+lectura_por_entidad <- datos %>%
+  filter(!is.na(p26)) %>%
+  group_by(entidad) %>%
+  summarize(minutos_promedio = mean(p26, na.rm = TRUE), .groups = 'drop') %>%
+  left_join(entidad_nombres, by = "entidad") %>%
+  filter(!is.na(nombre_entidad))
+
+ggplot(lectura_por_entidad, aes(x = reorder(nombre_entidad, minutos_promedio), y = minutos_promedio)) +
+  geom_col(aes(fill = minutos_promedio)) +
+  coord_flip() + 
+  scale_fill_gradient(low = "#a8ddb5", high = "#2b8cbe") + 
+  labs(
+    title = "Ranking de Minutos de Lectura Continua por Estado",
+    subtitle = "Promedio de todos los años (2019-2024)",
+    x = "Estado",
+    y = "Minutos Promedio de Lectura"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+```{r}
+par(mfrow = c(1, 2))
+
+hist(
+  datos$p26[datos$sexo == "Hombre"],
+  main = "Hombres",
+  xlab = "Minutos de Lectura",
+  ylab = "Frecuencia",
+  col = "skyblue3",
+  breaks = 20,
+  xlim = c(0, 180)
+)
+
+hist(
+  datos$p26[datos$sexo == "Mujer"],
+  main = "Mujeres",
+  xlab = "Minutos de Lectura",
+  ylab = "Frecuencia",
+  col = "salmon",
+  breaks = 20,
+  xlim = c(0, 180)
+)
+
+par(mfrow = c(1, 1))
+```
+
+```{r}
+# --- Preparación de la variable p31 ---
+datos <- datos %>%
+  mutate(
+    consulta_fuentes = case_when(
+      p31 == "1" ~ "Sí consulta otras fuentes",
+      p31 == "2" ~ "No consulta otras fuentes",
+    )
+  )
+
+ggplot(
+  datos %>% filter(!is.na(consulta_fuentes) & !is.na(generacion)),
+  aes(x = generacion, fill = consulta_fuentes)
+) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("Sí consulta otras fuentes" = "#2c7fb8", "No consulta otras fuentes" = "#edf8b1")) +
+  labs(
+    title = "Porcentaje de Lectores que Consultan Otras Fuentes según su Generación (2019-2024)",
+    x = "Generación",
+    y = "Porcentaje",
+    fill = "Comportamiento"
+  ) +
+  theme_minimal()
+```
 
