@@ -306,3 +306,77 @@ ggplot(
   theme_minimal()
 ```
 
+```{r}
+library(e1071)
+
+tabla_descriptiva_p4 <- datos %>%
+  filter(!is.na(p4)) %>%
+  group_by(anio) %>%
+  summarize(
+    Minimo = min(p4, na.rm = TRUE),
+    Q1 = quantile(p4, 0.25, na.rm = TRUE),
+    Mediana = median(p4, na.rm = TRUE),
+    Media = mean(p4, na.rm = TRUE),
+    Q3 = quantile(p4, 0.75, na.rm = TRUE),
+    Maximo = max(p4, na.rm = TRUE),
+    Desv_Est = sd(p4, na.rm = TRUE),
+    Sesgo = skewness(p4, na.rm = TRUE),
+    Curtosis = kurtosis(p4, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+
+  mutate(
+    Rango_Medio = (Maximo - Minimo) / 2,
+    CV = (Desv_Est / Media)
+  ) %>%
+  select(
+    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
+    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
+  )
+
+tabla_final <- t(select(tabla_descriptiva_p4, -anio))
+colnames(tabla_final) <- tabla_descriptiva_p4$anio
+
+rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
+                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
+
+round(tabla_final, 2)
+```
+
+```{r}
+library(e1071)
+
+tabla_descriptiva_p26 <- datos %>%
+  filter(!is.na(p26)) %>%
+  group_by(anio) %>%
+  summarize(
+    Minimo = min(p26, na.rm = TRUE),
+    Q1 = quantile(p26, 0.25, na.rm = TRUE),
+    Mediana = median(p26, na.rm = TRUE),
+    Media = mean(p26, na.rm = TRUE),
+    Q3 = quantile(p26, 0.75, na.rm = TRUE),
+    Maximo = max(p26, na.rm = TRUE),
+    Desv_Est = sd(p26, na.rm = TRUE),
+    Sesgo = skewness(p26, na.rm = TRUE),
+    Curtosis = kurtosis(p26, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+
+  mutate(
+    Rango_Medio = (Maximo - Minimo) / 2,
+    CV = (Desv_Est / Media)
+  ) %>%
+  select(
+    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
+    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
+  )
+
+tabla_final <- t(select(tabla_descriptiva_p26, -anio))
+colnames(tabla_final) <- tabla_descriptiva_p26$anio
+
+rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
+                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
+
+round(tabla_final, 2)
+```
+
