@@ -79,6 +79,8 @@ datos <- datos %>%
       edad >= 59             ~ "Boomer"
     )
   )
+datos %>%
+  count(generacion, sort = TRUE)
 ```
 
 
@@ -254,6 +256,47 @@ ggplot(lectura_por_entidad, aes(x = reorder(nombre_entidad, minutos_promedio), y
   theme_minimal() +
   theme(legend.position = "none")
 ```
+
+```{r}
+entidad_nombres <- data.frame(
+  entidad = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
+              "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", 
+              "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", 
+              "31", "32"),
+  nombre_entidad = c("Aguascalientes", "Baja California", "Baja California Sur", "Campeche", 
+                     "Coahuila", "Colima", "Chiapas", "Chihuahua", "Ciudad de México", 
+                     "Durango", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", 
+                     "México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", 
+                     "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", 
+                     "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", 
+                     "Veracruz", "Yucatán", "Zacatecas")
+)
+
+datos <- datos %>% mutate(entidad = formatC(entidad, width=2, flag="0"))
+
+libros_por_entidad <- datos %>%
+  filter(!is.na(p4)) %>%
+  group_by(entidad) %>%
+  summarize(libros_promedio = mean(p4, na.rm = TRUE), .groups = 'drop') %>%
+  left_join(entidad_nombres, by = "entidad") %>%
+  filter(!is.na(nombre_entidad))
+
+ggplot(libros_por_entidad, aes(x = reorder(nombre_entidad, libros_promedio), y = libros_promedio)) +
+  geom_col(aes(fill = libros_promedio)) +
+  coord_flip() +
+  scale_fill_gradient(low = "#a8ddb1", high = "#2b8cbe") +
+  labs(
+    title = "Ranking de Libros Leídos por Estado",
+    subtitle = "Promedio de todos los años (2019-2024)",
+    x = "Estado",
+    y = "Libros Promedio Leídos"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+
+
 ```{r}
 par(mfrow = c(1, 2))
 
@@ -281,12 +324,41 @@ par(mfrow = c(1, 1))
 ```
 
 ```{r}
-# --- Preparación de la variable p31 ---
+# --- Histograma Facetado por Sexo y Año ---
+
+# Nos aseguramos que las variables a usar estén limpias
+datos <- datos %>%
+  mutate(
+    p26 = as.numeric(as.character(p26)),
+    anio = as.factor(anio) # Tratar el año como categoría es mejor para facetas
+  )
+
+ggplot(datos %>% filter(!is.na(p26) & !is.na(sexo)), aes(x = p26, fill = sexo)) +
+  geom_histogram(binwidth = 10, na.rm = TRUE, show.legend = FALSE) +
+  scale_fill_manual(values = c("Hombre" = "skyblue3", "Mujer" = "salmon")) +
+  
+  # La clave: facet_grid() crea la cuadrícula. Filas por año, columnas por sexo.
+  facet_grid(anio ~ sexo) +
+  
+  # Limitamos el eje X para una mejor comparación visual
+  coord_cartesian(xlim = c(0, 180)) +
+  
+  labs(
+    title = "Distribución de Minutos de Lectura por Sexo y Año",
+    x = "Minutos Continuos de Lectura (p26)",
+    y = "Frecuencia"
+  ) +
+  theme_minimal()
+```
+
+
+```{r}
 datos <- datos %>%
   mutate(
     consulta_fuentes = case_when(
       p31 == "1" ~ "Sí consulta otras fuentes",
       p31 == "2" ~ "No consulta otras fuentes",
+      TRUE ~ NA_character_
     )
   )
 
@@ -296,15 +368,22 @@ ggplot(
 ) +
   geom_bar(position = "fill") +
   scale_y_continuous(labels = scales::percent) +
-  scale_fill_manual(values = c("Sí consulta otras fuentes" = "#2c7fb8", "No consulta otras fuentes" = "#edf8b1")) +
+  scale_fill_manual(values = c("Sí consulta otras fuentes" = "#2c7fb8", "No consulta otras fuentes" = "cyan2")) +
+  
+  facet_wrap(~ anio) +
+  
   labs(
-    title = "Porcentaje de Lectores que Consultan Otras Fuentes según su Generación (2019-2024)",
+    title = "Lectores que Consultan Otras Fuentes por Generación y Año",
+    subtitle = "Comparación de proporciones anuales",
     x = "Generación",
     y = "Porcentaje",
     fill = "Comportamiento"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+
 
 ```{r}
 library(e1071)
@@ -342,6 +421,80 @@ rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo",
 
 round(tabla_final, 2)
 ```
+
+```{r}
+library(e1071)
+
+tabla_descriptiva_p10 <- datos %>%
+  filter(!is.na(p10)) %>%
+  group_by(anio) %>%
+  summarize(
+    Minimo = min(p10, na.rm = TRUE),
+    Q1 = quantile(p10, 0.25, na.rm = TRUE),
+    Mediana = median(p10, na.rm = TRUE),
+    Media = mean(p10, na.rm = TRUE),
+    Q3 = quantile(p10, 0.75, na.rm = TRUE),
+    Maximo = max(p10, na.rm = TRUE),
+    Desv_Est = sd(p10, na.rm = TRUE),
+    Sesgo = skewness(p10, na.rm = TRUE),
+    Curtosis = kurtosis(p10, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+
+  mutate(
+    Rango_Medio = (Maximo - Minimo) / 2,
+    CV = (Desv_Est / Media)
+  ) %>%
+  select(
+    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
+    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
+  )
+
+tabla_final <- t(select(tabla_descriptiva_p10, -anio))
+colnames(tabla_final) <- tabla_descriptiva_p10$anio
+
+rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
+                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
+
+round(tabla_final, 2)
+```
+```{r}
+library(e1071)
+
+tabla_descriptiva_p16 <- datos %>%
+  filter(!is.na(p16)) %>%
+  group_by(anio) %>%
+  summarize(
+    Minimo = min(p16, na.rm = TRUE),
+    Q1 = quantile(p16, 0.25, na.rm = TRUE),
+    Mediana = median(p16, na.rm = TRUE),
+    Media = mean(p16, na.rm = TRUE),
+    Q3 = quantile(p16, 0.75, na.rm = TRUE),
+    Maximo = max(p16, na.rm = TRUE),
+    Desv_Est = sd(p16, na.rm = TRUE),
+    Sesgo = skewness(p16, na.rm = TRUE),
+    Curtosis = kurtosis(p16, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+
+  mutate(
+    Rango_Medio = (Maximo - Minimo) / 2,
+    CV = (Desv_Est / Media)
+  ) %>%
+  select(
+    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
+    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
+  )
+
+tabla_final <- t(select(tabla_descriptiva_p16, -anio))
+colnames(tabla_final) <- tabla_descriptiva_p16$anio
+
+rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
+                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
+
+round(tabla_final, 2)
+```
+
 
 ```{r}
 library(e1071)
