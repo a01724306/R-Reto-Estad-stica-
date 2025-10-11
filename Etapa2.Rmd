@@ -66,7 +66,35 @@ d_2019 <- d_2019 %>%
 datos <- bind_rows(d_2024,d_2023,d_2022,d_2021,d_2020,d_2019)
 glimpse(datos)
 
+# Calculate the percentage of missing data for specific columns
+missing_summary <- datos %>%
+  summarise(
+    porcentaje_NA_edad = (sum(is.na(edad)) / n()) * 100,
+    porcentaje_NA_anio = (sum(is.na(anio)) / n()) * 100
+  )
+
+# Print the results, rounded to 2 decimal places
+print(round(missing_summary, 2))
+
 ```
+```{r}
+#Agrupar por generacion
+datos <- datos %>%
+  mutate(
+    anio_de_nacimiento = anio - edad,
+    generacion = case_when(
+      anio_de_nacimiento >= 1997 ~ "Gen Z",
+      anio_de_nacimiento >= 1981 & anio_de_nacimiento <= 1996 ~ "Millennial",
+      anio_de_nacimiento >= 1965 & anio_de_nacimiento <= 1980 ~ "Gen X",
+      anio_de_nacimiento <= 1964 ~ "Boomer"
+    )
+  ) %>%
+  select(-anio_de_nacimiento)
+
+datos %>%
+  count(generacion, sort = TRUE)
+```
+
 
 ```{r}
 #A groupar por generación
@@ -162,6 +190,7 @@ ggplot(books_by_education_detailed, aes(x = anio, y = libros_promedio, color = n
     y = "Número de Libros Promedio",
     color = "Nivel Educativo"
   )
+
 ```
 
 ```{r}
@@ -181,25 +210,42 @@ datos <- datos %>%
     )
   )
 
-#Calcular el porcentaje que SÍ asistió a bibliotecas, según si lo llevaban o no de niño
-library_habits <- datos %>%
+library_habits <- datos %>% #biblioteca
   filter(!is.na(asistencia_nino) & !is.na(asistio_biblioteca_reciente)) %>%
   group_by(asistencia_nino) %>%
   summarize(
     porcentaje_asistencia = mean(asistio_biblioteca_reciente == "Sí") * 100
-  )
+  ) %>%
+  mutate(lugar = "Biblioteca") #columna biblioteca
 
-ggplot(library_habits, aes(x = asistencia_nino, y = porcentaje_asistencia, fill = asistencia_nino)) +
-  geom_col() +
-  geom_text(aes(label = paste0(round(porcentaje_asistencia, 1), "%")), vjust = -0.5) +
-  labs(
-    title = "Asistencia Reciente a Bibliotecas según la Experiencia en la Niñez (2019-2024)",
-    x = "De niño, ¿lo llevaban a bibliotecas o librerías?",
-    y = "% que SÍ asistió en los últimos 3 meses"
+bookstore_habits <- datos %>% #librería
+  filter(!is.na(asistencia_nino) & !is.na(asistio_libreria_reciente)) %>%
+  group_by(asistencia_nino) %>%
+  summarize(
+    porcentaje_asistencia = mean(asistio_libreria_reciente == "Sí") * 100
+  ) %>%
+  mutate(lugar = "Librería") #columna librería
+
+summary_habits <- bind_rows(library_habits, bookstore_habits)
+
+ggplot(summary_habits, aes(x = asistencia_nino, y = porcentaje_asistencia, fill = lugar)) +
+  geom_col(position = "dodge") +
+  geom_text(
+    aes(label = paste0(round(porcentaje_asistencia, 1), "%")),
+    position = position_dodge(width = 0.9),
+    vjust = -0.5
   ) +
-  theme_minimal() +
-  theme(legend.position = "none")
+  labs(
+    title = "Asistencia a Bibliotecas y Librerías según la Experiencia en la Niñez",
+    x = "De niño, ¿lo llevaban a estos lugares?",
+    y = "% que SÍ asistió recientemente",
+    fill = "Lugar visitado"
+  ) +
+  theme_minimal()
 ```
+
+
+
 
 ```{r}
 #datos <- datos %>%
@@ -257,6 +303,7 @@ ggplot(lectura_por_entidad, aes(x = reorder(nombre_entidad, minutos_promedio), y
   theme(legend.position = "none")
 ```
 
+
 ```{r}
 entidad_nombres <- data.frame(
   entidad = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
@@ -307,7 +354,8 @@ hist(
   ylab = "Frecuencia",
   col = "skyblue3",
   breaks = 20,
-  xlim = c(0, 180)
+  xlim = c(0, 180),
+  ylim = c(0,4000)
 )
 
 hist(
@@ -317,7 +365,9 @@ hist(
   ylab = "Frecuencia",
   col = "salmon",
   breaks = 20,
-  xlim = c(0, 180)
+  xlim = c(0, 180),
+  ylim = c(0,4000)
+
 )
 
 par(mfrow = c(1, 1))
@@ -384,6 +434,42 @@ ggplot(
 ```
 
 
+```{r}
+library(e1071)
+
+tabla_descriptiva_edad <- datos %>%
+  filter(!is.na(edad)) %>%
+  group_by(anio) %>%
+  summarize(
+    Minimo = min(edad, na.rm = TRUE),
+    Q1 = quantile(edad, 0.25, na.rm = TRUE),
+    Mediana = median(edad, na.rm = TRUE),
+    Media = mean(edad, na.rm = TRUE),
+    Q3 = quantile(edad, 0.75, na.rm = TRUE),
+    Maximo = max(edad, na.rm = TRUE),
+    Desv_Est = sd(edad, na.rm = TRUE),
+    Sesgo = skewness(edad, na.rm = TRUE),
+    Curtosis = kurtosis(edad, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+
+  mutate(
+    Rango_Medio = (Maximo - Minimo) / 2,
+    CV = (Desv_Est / Media)
+  ) %>%
+  select(
+    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
+    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
+  )
+
+tabla_final <- t(select(tabla_descriptiva_edad, -anio))
+colnames(tabla_final) <- tabla_descriptiva_edad$anio
+
+rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
+                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
+
+round(tabla_final, 2)
+```
 
 ```{r}
 library(e1071)
@@ -415,79 +501,6 @@ tabla_descriptiva_p4 <- datos %>%
 
 tabla_final <- t(select(tabla_descriptiva_p4, -anio))
 colnames(tabla_final) <- tabla_descriptiva_p4$anio
-
-rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
-                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
-
-round(tabla_final, 2)
-```
-
-```{r}
-library(e1071)
-
-tabla_descriptiva_p10 <- datos %>%
-  filter(!is.na(p10)) %>%
-  group_by(anio) %>%
-  summarize(
-    Minimo = min(p10, na.rm = TRUE),
-    Q1 = quantile(p10, 0.25, na.rm = TRUE),
-    Mediana = median(p10, na.rm = TRUE),
-    Media = mean(p10, na.rm = TRUE),
-    Q3 = quantile(p10, 0.75, na.rm = TRUE),
-    Maximo = max(p10, na.rm = TRUE),
-    Desv_Est = sd(p10, na.rm = TRUE),
-    Sesgo = skewness(p10, na.rm = TRUE),
-    Curtosis = kurtosis(p10, na.rm = TRUE),
-    .groups = 'drop'
-  ) %>%
-
-  mutate(
-    Rango_Medio = (Maximo - Minimo) / 2,
-    CV = (Desv_Est / Media)
-  ) %>%
-  select(
-    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
-    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
-  )
-
-tabla_final <- t(select(tabla_descriptiva_p10, -anio))
-colnames(tabla_final) <- tabla_descriptiva_p10$anio
-
-rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
-                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
-
-round(tabla_final, 2)
-```
-```{r}
-library(e1071)
-
-tabla_descriptiva_p16 <- datos %>%
-  filter(!is.na(p16)) %>%
-  group_by(anio) %>%
-  summarize(
-    Minimo = min(p16, na.rm = TRUE),
-    Q1 = quantile(p16, 0.25, na.rm = TRUE),
-    Mediana = median(p16, na.rm = TRUE),
-    Media = mean(p16, na.rm = TRUE),
-    Q3 = quantile(p16, 0.75, na.rm = TRUE),
-    Maximo = max(p16, na.rm = TRUE),
-    Desv_Est = sd(p16, na.rm = TRUE),
-    Sesgo = skewness(p16, na.rm = TRUE),
-    Curtosis = kurtosis(p16, na.rm = TRUE),
-    .groups = 'drop'
-  ) %>%
-
-  mutate(
-    Rango_Medio = (Maximo - Minimo) / 2,
-    CV = (Desv_Est / Media)
-  ) %>%
-  select(
-    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
-    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
-  )
-
-tabla_final <- t(select(tabla_descriptiva_p16, -anio))
-colnames(tabla_final) <- tabla_descriptiva_p16$anio
 
 rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
                            "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
@@ -531,5 +544,43 @@ rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo",
                            "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
 
 round(tabla_final, 2)
+```
+```{r}
+entidades_unicas <- unique(datos$entidad)
+promedio_educativo_entidad <- data.frame(
+  entidad = character(),
+  promedio_nivel = numeric()
+)
+
+for (ent in entidades_unicas) {
+  
+  datos_filtrados <- datos %>% filter(entidad == ent)
+  promedio_actual <- mean(datos_filtrados$nivel, na.rm = TRUE)
+  nueva_fila <- data.frame(entidad = ent, promedio_nivel = promedio_actual)
+  promedio_educativo_entidad <- bind_rows(promedio_educativo_entidad, nueva_fila)
+}
+
+promedio_educativo_entidad <- promedio_educativo_entidad %>%
+  left_join(entidad_nombres, by = "entidad") %>%
+  arrange(desc(promedio_nivel)) #Ordena
+
+print(promedio_educativo_entidad)
+
+promedio_educativo_dplyr <- datos %>%
+  filter(nivel != 99) %>% #Quitar el 99 para evitar alteración de datos
+  group_by(entidad) %>% 
+  summarize(
+    promedio_nivel = mean(nivel, na.rm = TRUE) 
+  ) %>%
+  left_join(entidad_nombres, by = "entidad") %>% 
+  arrange(desc(promedio_nivel))
+
+print(promedio_educativo_dplyr)
+```
+
+```{r}
+datos %>% 
+  filter(nivel>"09") %>% 
+  count(nivel)
 ```
 
