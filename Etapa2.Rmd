@@ -72,13 +72,16 @@ glimpse(datos)
 #A groupar por generación
 datos <- datos %>%
   mutate(
+    anio_de_nacimiento = anio-edad,
     generacion = case_when(
-      edad >= 18 & edad <= 27 ~ "Gen Z",
-      edad >= 28 & edad <= 42 ~ "Millennial",
-      edad >= 43 & edad <= 58 ~ "Gen X",
-      edad >= 59             ~ "Boomer"
+      anio_de_nacimiento >= 1997 ~ "Gen Z",
+      anio_de_nacimiento >= 1981 & anio_de_nacimiento <= 1996 ~ "Millennial",
+      anio_de_nacimiento >= 1965 & anio_de_nacimiento <= 1980 ~ "Gen X",
+      anio_de_nacimiento <= 1964 ~ "Boomer"
     )
-  )
+  ) %>% 
+  select(-anio_de_nacimiento)
+
 datos %>%
   count(generacion, sort = TRUE)
 ```
@@ -226,7 +229,7 @@ entidad_nombres <- data.frame(
               "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", 
               "31", "32"),
   nombre_entidad = c("Aguascalientes", "Baja California", "Baja California Sur", "Campeche", 
-                     "Coahuila", "Colima", "Chiapas", "Chihuahua", "Ciudad de México", 
+                     "Coahuila", "Colima", "Chihuahua", "Chiapas", "Ciudad de México", 
                      "Durango", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", 
                      "México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", 
                      "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", 
