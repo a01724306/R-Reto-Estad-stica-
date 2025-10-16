@@ -1,0 +1,144 @@
+---
+title: "Etapa 3"
+author: "Alys Jiménez"
+date: "`r Sys.Date()`"
+output: html_document
+---
+```{r}
+library(dplyr)
+library(ggplot2)
+library(printr)
+
+
+setwd("/Users/alysjime/Downloads")
+getwd()
+datos_2024 <- read.csv("Datos_molec_2024-1.csv")
+datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+
+#Hacer nuevas bases con solo las variables por analizar
+d_2024 <- datos_2024 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2023 <- datos_2023 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2022 <- datos_2022 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2021 <- datos_2021 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2020 <- datos_2020 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2019 <- datos_2019 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+#Añadir columna de año para poder combinar y comparar los datos
+d_2024 <- d_2024 %>% 
+  mutate(anio= 2024)
+
+d_2023 <- d_2023 %>% 
+  mutate(anio= 2023)
+
+d_2022 <- d_2022 %>% 
+  mutate(anio= 2022)
+
+d_2021 <- d_2021 %>% 
+  mutate(anio= 2021)
+
+d_2020 <- d_2020 %>% 
+  mutate(anio= 2020)
+
+d_2019 <- d_2019 %>% 
+  mutate(anio= 2019)
+
+#Combinar todos los años
+datos <- bind_rows(d_2024,d_2023,d_2022,d_2021,d_2020,d_2019)
+glimpse(datos)
+
+```
+
+
+```{r setup, include=FALSE}
+datos <- datos %>%
+  mutate(
+    asistencia_nino = case_when(
+      p33_1 == "1" ~ "Sí lo llevaban",
+      p33_1 == "2" ~ "No lo llevaban",
+    ),
+    asistio_biblioteca_reciente = case_when(
+      p33_3 == "1" ~ "Sí",
+      p33_3 == "2" ~ "No",
+    ),
+    asistio_libreria_reciente = case_when(
+      p33_4 == "1" ~ "Sí",
+      p33_4 == "2" ~ "No",
+    )
+  )
+
+#Calcular el porcentaje que SÍ asistió a bibliotecas, según si lo llevaban o no de niño
+library_habits <- datos %>%
+  filter(!is.na(asistencia_nino) & !is.na(asistio_biblioteca_reciente)) %>%
+  group_by(asistencia_nino) %>%
+  summarize(
+    porcentaje_asistencia = mean(asistio_biblioteca_reciente == "Sí") * 100
+  )
+
+ggplot(library_habits, aes(x = asistencia_nino, y = porcentaje_asistencia, fill = asistencia_nino)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(porcentaje_asistencia, 1), "%")), vjust = -0.5) +
+  labs(
+    title = "Asistencia Reciente a Bibliotecas según la Experiencia en la Niñez (2019-2024)",
+    x = "De niño, ¿lo llevaban a bibliotecas o librerías?",
+    y = "% que SÍ asistió en los últimos 3 meses"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+PRUEBA DE hipótesis 
+
+H0= (La hipótesis nula): la asistencia a bibliotecas/librerias en la niñez y la asistencia en la adultez son independientes. 
+HA= (La hipótesis alternativa): la asistencia a bibliotecas/librerias en la niñez y en la adultez NO son independientes. 
+
+```{r setup, include=FALSE}
+
+tabla_observada <- table(datos$asistencia_nino, datos$asistio_biblioteca_reciente)
+
+colnames(tabla_observada) <- c("Asistió Recientemente (No)", "Asistió Recientemente (Sí)")
+rownames(tabla_observada) <- c("No lo llevaban de niño", "Sí lo llevaban de niño")
+
+print(tabla_observada)
+```
+
+```{r}
+resultado_chi <- chisq.test(tabla_observada)
+resultado_chi
+```
+```{r}
+
+cat("Tabla de Frecuencias Esperadas:\n")
+print(round(resultado_chi$expected, 2))
+
+
+cat("\n La Prueba Chi-cuadrada\n")
+cat("Estadístico Chi^2 =", round(resultado_chi$statistic, 3), "\n")
+cat("Grados de libertad (df) =", resultado_chi$parameter, "\n")
+cat("p-valor =", resultado_chi$p.value, "\n\n")
+
+
+alpha <- 0.04
+if (resultado_chi$p.value < alpha) {
+  cat(" Conclusión: Se rechaza la Hipótesis Nula (H0).\n")
+  cat("El p-valor es menor que 0.04, lo que indica que existe una asociación estadísticamente significativa entre haber sido llevado a bibliotecas en la niñez y asistir a ellas en la adultez.\n")
+} else {
+  cat("Conclusión: No se rechaza la Hipótesis Nula (H0).\n")
+  cat("El p-valor es mayor o igual a 0.04, por lo que no hay evidencia estadística suficiente para afirmar que las variables están asociadas.\n")
+}
+```
+
