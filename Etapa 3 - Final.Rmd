@@ -1,0 +1,259 @@
+---
+title: "etapa 3 final"
+author: "Alejandro Martínez Páez - A01286707"
+date: "2025-10-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Etapa 3: Análisis inferencial
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+#Datos
+datos_2024 <- read.csv("Datos_molec_2024-1.csv")
+datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+
+datos <- bind_rows(datos_2024, datos_2023, datos_2022, datos_2021, datos_2020, datos_2019)
+
+#Crear columnas categóricas descriptivas
+datos <- datos %>%
+  mutate(
+    sexo_cat = if_else(sexo == "1", "Hombre", "Mujer"),
+    asistencia_nino = case_when(
+      p33_1 == "1" ~ "Sí lo llevaban",
+      p33_1 == "2" ~ "No lo llevaban",
+    ),
+    asistio_biblioteca_reciente = case_when(
+      p33_3 == "1" ~ "Sí",
+      p33_3 == "2" ~ "No",
+    ),
+    asistio_libreria_reciente = case_when(
+      p33_4 == "1" ~ "Sí",
+      p33_4 == "2" ~ "No",
+    ),
+    Nivel_Educativo = case_when(
+        nivel == "7" ~ "Profesional",
+        nivel == "9" ~ "Doctorado",
+        TRUE ~ "Otro"
+    ),
+    Generacion = case_when(
+      edad >= 60 ~ "Boomer",
+      edad >= 44 & edad <= 59 ~ "Gen X",
+      edad >= 28 & edad <= 43 ~ "Millennial",
+      edad >= 18 & edad <= 27 ~ "Gen Z"
+    )
+  )
+
+#dataframes filtrados para análisis específicos
+datos_anova <- datos %>% filter(!is.na(Generacion) & !is.na(p4))
+datos_ttest <- datos %>% filter(!is.na(p26))
+datos_campeche <- datos %>% filter(entidad == "4" & !is.na(p26))
+datos_educacion <- datos %>% filter(Nivel_Educativo %in% c("Doctorado", "Profesional") & !is.na(p4))
+
+
+# PRUEBAS DE HIPÓTESIS Y GRÁFICAS
+alpha <- 0.04
+
+#Prueba 1: Chi-Cuadrada 
+cat("\n\n--- PRUEBA 1: CHI-CUADRADA ---\n")
+tabla_observada <- table(datos$asistencia_nino, datos$asistio_biblioteca_reciente)
+prueba_chi <- chisq.test(tabla_observada)
+print(prueba_chi)
+
+#Valor frontera
+gl_chi <- prueba_chi$parameter
+valor_frontera_chi <- qchisq(1 - alpha, df = gl_chi)
+cat("\nValor Frontera (Crítico) χ²:", round(valor_frontera_chi, 3), "\n")
+
+#Gráfico de la prueba Chi-Cuadrada
+xe <- prueba_chi$statistic; xf <- valor_frontera_chi
+x_max <- max(xe, xf) * 1.2; x <- seq(0, x_max, length.out = 500); y <- dchisq(x, df = gl_chi)
+plot(x, y, type = "l", lwd = 2, main = "Prueba Chi-Cuadrada", xlab = paste("Distribución χ² con", gl_chi, "gl"), ylab = "Densidad")
+x_sombreado <- seq(xf, x_max, length.out = 100); y_sombreado <- dchisq(x_sombreado, df = gl_chi)
+polygon(c(xf, x_sombreado, x_max), c(0, y_sombreado, 0), col = rgb(1, 0, 0, 0.3))
+abline(v = xf, col = "red", lty = 2, lwd = 2); text(xf, max(y) * 0.6, paste("Frontera\n", round(xf, 2)), pos = 2, col = "red")
+abline(v = xe, col = "blue", lty = 1, lwd = 2); text(xe, max(y) * 0.3, paste("Estadístico\n χ² =", round(xe, 2)), pos = 2, col = "blue")
+
+#Prueba 2: ANOVA 
+cat("\n\n--- PRUEBA 2: ANOVA ---\n")
+modelo_anova <- aov(p4 ~ Generacion, data = datos_anova)
+sumario_anova <- summary(modelo_anova)
+print(sumario_anova)
+
+#Valor frontera
+gl_num <- sumario_anova[[1]]$Df[1]
+gl_den <- sumario_anova[[1]]$Df[2]
+valor_frontera_f <- qf(1 - alpha, gl_num, gl_den)
+cat("\nValor Frontera (Crítico) F:", round(valor_frontera_f, 3), "\n")
+
+#Gráfico de Cajas para ANOVA
+print(
+  ggplot(datos_anova, aes(x = Generacion, y = p4, fill = Generacion)) +
+    geom_boxplot() +
+    labs(title = "Distribución de Libros Leídos por Generación", y = "Número de Libros Leídos") +
+    theme_minimal()
+)
+
+#Análisis Post-Hoc con su gráfico
+cat("\n--- Análisis Post-Hoc (Tukey HSD) ---\n")
+tukey_resultados <- TukeyHSD(modelo_anova, conf.level = 1 - alpha)
+print(tukey_resultados)
+plot(tukey_resultados, las = 1)
+par(mar=c(5.1, 8.1, 4.1, 2.1)) #Ajustar margen izquierdo para que no se amontone
+plot(tukey_resultados, las = 1)
+par(mar=c(5.1, 4.1, 4.1, 2.1)) #Restaurar margen
+
+#Prueba 3: t-Student
+cat("\n\n--- PRUEBA 3: T-STUDENT ---\n")
+resultado_ttest <- t.test(p26 ~ sexo_cat, data = datos_ttest, conf.level = 1 - alpha)
+print(resultado_ttest)
+
+#Valor frontera
+gl_t <- resultado_ttest$parameter
+valor_frontera_t <- qt(1 - alpha/2, df = gl_t)
+cat("\nValor Frontera (Crítico) t: ±", round(valor_frontera_t, 3), "\n")
+
+#Gráfico de Cajas para Prueba t
+print(
+  ggplot(datos_ttest, aes(x = sexo_cat, y = p26, fill = sexo_cat)) +
+    geom_boxplot() +
+    labs(title = "Distribución de Minutos de Lectura por Sexo", x = "Sexo", y = "Minutos de Lectura Continua") +
+    theme_minimal()
+)
+
+#Gráfico de la prueba t
+te <- resultado_ttest$statistic; tf <- valor_frontera_t
+x_t <- seq(-5, 5, length.out = 500); y_t <- dt(x_t, df = gl_t)
+plot(x_t, y_t, type = "l", lwd = 2, main = "Prueba t", xlab = paste("Distribución t con", round(gl_t, 2), "gl"), ylab = "Densidad")
+x_sombreado_sup <- seq(tf, 5, length.out=100); y_sombreado_sup <- dt(x_sombreado_sup, df=gl_t)
+polygon(c(tf, x_sombreado_sup, 5), c(0, y_sombreado_sup, 0), col = rgb(1, 0, 0, 0.3))
+x_sombreado_inf <- seq(-5, -tf, length.out=100); y_sombreado_inf <- dt(x_sombreado_inf, df=gl_t)
+polygon(c(-5, x_sombreado_inf, -tf), c(0, y_sombreado_inf, 0), col = rgb(1, 0, 0, 0.3))
+abline(v = tf, col = "red", lty = 2, lwd = 2); text(tf, max(y_t)*0.4, paste("Frontera\n", round(tf, 2)), pos = 4, col = "red")
+abline(v = -tf, col = "red", lty = 2, lwd = 2); text(-tf, max(y_t)*0.4, paste("Frontera\n", round(-tf, 2)), pos = 2, col = "red")
+abline(v = te, col = "blue", lty = 1, lwd = 2); text(te, max(y_t)*0.8, paste("Estadístico\n t =", round(te, 2)), pos = 2, col = "blue")
+
+
+# INTERVALOS DE CONFIANZA Y GRÁFICAS
+
+# 1. Libros Leídos (Gen Z)
+cat("\n\n--- IC 1: Libros Leídos (Gen Z) ---\n")
+datos_gen_z <- datos_anova %>% filter(Generacion == "Gen Z")
+n <- nrow(datos_gen_z)
+if (n > 1) {
+  media_muestral <- mean(datos_gen_z$p4); s <- sd(datos_gen_z$p4); gl <- n - 1
+  t_critico <- qt(1 - alpha/2, gl)
+  margen_error <- t_critico * s / sqrt(n)
+  cat("Límite Inferior:", round(media_muestral - margen_error, 3), "\n")
+  cat("Límite Superior:", round(media_muestral + margen_error, 3), "\n")
+  print(
+    ggplot(datos_gen_z, aes(y = p4)) + geom_boxplot(fill="skyblue") +
+    labs(title="Distribución de Libros Leídos (Gen Z)", y="Libros Leídos", x="") + theme_minimal()
+  )
+}
+
+# 2. Minutos de Lectura (Campeche)
+cat("\n\n--- IC 2: Minutos de Lectura (Campeche) ---\n")
+n_c <- nrow(datos_campeche)
+if (n_c > 1) {
+  media_muestral_c <- mean(datos_campeche$p26); s_c <- sd(datos_campeche$p26); gl_c <- n_c - 1
+  t_critico_c <- qt(1 - alpha/2, gl_c)
+  margen_error_c <- t_critico_c * s_c / sqrt(n_c)
+  cat("Límite Inferior:", round(media_muestral_c - margen_error_c, 3), "\n")
+  cat("Límite Superior:", round(media_muestral_c + margen_error_c, 3), "\n")
+  print(
+    ggplot(datos_campeche, aes(y = p26)) + geom_boxplot(fill="lightgreen") +
+    labs(title="Distribución de Minutos de Lectura (Campeche)", y="Minutos de Lectura", x="") + theme_minimal()
+  )
+}
+
+# 3. Diferencia de Libros (Doctorado - Profesional) 
+cat("\n\n--- IC 3: Diferencia de Libros (Doctorado - Profesional) ---\n")
+datos_doc <- datos_educacion %>% filter(Nivel_Educativo == "Doctorado")
+datos_prof <- datos_educacion %>% filter(Nivel_Educativo == "Profesional")
+n1 <- nrow(datos_doc); n2 <- nrow(datos_prof)
+if (n1 > 1 && n2 > 1) {
+  media1 <- mean(datos_doc$p4); s1_cuad <- var(datos_doc$p4)
+  media2 <- mean(datos_prof$p4); s2_cuad <- var(datos_prof$p4)
+  diferencia_medias <- media1 - media2
+  error_estandar_dif <- sqrt(s1_cuad/n1 + s2_cuad/n2)
+  num <- (s1_cuad/n1 + s2_cuad/n2)^2; den <- (s1_cuad/n1)^2/(n1-1) + (s2_cuad/n2)^2/(n2-1); gl_dif <- num/den
+  t_critico_dif <- qt(1 - alpha/2, gl_dif)
+  margen_error_dif <- t_critico_dif * error_estandar_dif
+  cat("Límite Inferior:", round(diferencia_medias - margen_error_dif, 3), "\n")
+  cat("Límite Superior:", round(diferencia_medias + margen_error_dif, 3), "\n")
+  print(
+    ggplot(datos_educacion, aes(x = Nivel_Educativo, y = p4, fill = Nivel_Educativo)) + geom_boxplot() +
+    labs(title="Comparación de Libros Leídos (Doctorado vs. Profesional)", y="Libros Leídos") + theme_minimal() + theme(legend.position="none")
+  )
+}
+
+# 4. Proporción de Asistencia a Librerías
+cat("\n\n--- IC 4: Proporción de Asistencia a Librerías ---\n")
+conteo_librerias <- datos %>% filter(asistencia_nino == "Sí lo llevaban" & !is.na(asistio_libreria_reciente))
+n_prop <- nrow(conteo_librerias)
+if (n_prop > 0) {
+    x_prop <- sum(conteo_librerias$asistio_libreria_reciente == "Sí")
+    p_gorro <- x_prop / n_prop
+    z_critico <- qnorm(1 - alpha/2)
+    margen_error_prop <- z_critico * sqrt(p_gorro * (1 - p_gorro) / n_prop)
+    cat("Límite Inferior:", round(p_gorro - margen_error_prop, 3), "\n")
+    cat("Límite Superior:", round(p_gorro + margen_error_prop, 3), "\n")
+    
+    #Crear dataframe para el gráfico de proporción
+    df_prop <- data.frame(
+      Categoria = c("Asistieron", "No Asistieron"),
+      Valor = c(p_gorro, 1 - p_gorro)
+    )
+    print(
+      ggplot(df_prop, aes(x = "", y = Valor, fill = Categoria)) +
+        geom_bar(stat = "identity", width = 1) +
+        coord_polar("y", start = 0) +
+        theme_void() +
+        geom_text(aes(label = paste0(round(Valor*100), "%")), position = position_stack(vjust=0.5)) +
+        labs(title="Proporción de Asistencia a Librerías\n(Entre quienes fueron llevados de niños)")
+    )
+}
+```
+```{r}
+# VERIFICACIÓN DE SUPUESTOS 
+library(car) #Necesaria para la prueba de Levene
+
+#Supuestos para ANOVA
+cat("--- 1. Supuestos para ANOVA ---\n")
+#Normalidad de los residuos (inspección visual)
+cat("Gráfico Q-Q para la normalidad de los residuos:\n")
+modelo_anova <- aov(p4 ~ Generacion, data = datos_anova)
+plot(modelo_anova, 2)
+
+#Homogeneidad de varianzas (Prueba de Levene)
+cat("\nPrueba de Levene para homogeneidad de varianzas:\n")
+print(leveneTest(p4 ~ as.factor(Generacion), data = datos_anova))
+
+
+#Supuestos para la Prueba t de Student
+cat("\n\n--- 2. Supuestos para la Prueba t de Student ---\n")
+#Homogeneidad de varianzas (Prueba de Levene)
+cat("Prueba de Levene para homogeneidad de varianzas:\n")
+print(leveneTest(p26 ~ as.factor(sexo_cat), data = datos_ttest))
+cat("Nota: La normalidad se asume por el Teorema del Límite Central debido al gran tamaño de la muestra.\n")
+
+
+#Supuestos para la Prueba de Chi-Cuadrada
+cat("\n\n--- 3. Supuestos para la Prueba de Chi-Cuadrada ---\n")
+cat("Tabla de frecuencias esperadas (todas deben ser >= 5):\n")
+prueba_chi <- chisq.test(tabla_observada)
+print(round(prueba_chi$expected, 2))
+```
+
+
