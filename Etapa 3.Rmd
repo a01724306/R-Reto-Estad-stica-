@@ -1,0 +1,203 @@
+---
+title: "Etapa 3"
+author: "Alejandro Martínez Páez - A01286707"
+date: "2025-10-19"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(printr)
+
+
+#setwd("/Users/alysjime/Downloads")
+getwd()
+datos_2024 <- read.csv("Datos_molec_2024-1.csv")
+datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+
+#Hacer nuevas bases con solo las variables por analizar
+d_2024 <- datos_2024 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2023 <- datos_2023 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2022 <- datos_2022 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2021 <- datos_2021 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2020 <- datos_2020 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2019 <- datos_2019 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+#Añadir columna de año para poder combinar y comparar los datos
+d_2024 <- d_2024 %>% 
+  mutate(anio= 2024)
+
+d_2023 <- d_2023 %>% 
+  mutate(anio= 2023)
+
+d_2022 <- d_2022 %>% 
+  mutate(anio= 2022)
+
+d_2021 <- d_2021 %>% 
+  mutate(anio= 2021)
+
+d_2020 <- d_2020 %>% 
+  mutate(anio= 2020)
+
+d_2019 <- d_2019 %>% 
+  mutate(anio= 2019)
+
+#Combinar todos los años
+datos <- bind_rows(d_2024,d_2023,d_2022,d_2021,d_2020,d_2019)
+glimpse(datos)
+
+```
+
+
+```{r}
+datos <- datos %>%
+  mutate(
+    asistencia_nino = case_when(
+      p33_1 == "1" ~ "Sí lo llevaban",
+      p33_1 == "2" ~ "No lo llevaban",
+    ),
+    asistio_biblioteca_reciente = case_when(
+      p33_3 == "1" ~ "Sí",
+      p33_3 == "2" ~ "No",
+    ),
+    asistio_libreria_reciente = case_when(
+      p33_4 == "1" ~ "Sí",
+      p33_4 == "2" ~ "No",
+    )
+  )
+
+#Calcular el porcentaje que SÍ asistió a bibliotecas, según si lo llevaban o no de niño
+library_habits <- datos %>%
+  filter(!is.na(asistencia_nino) & !is.na(asistio_biblioteca_reciente)) %>%
+  group_by(asistencia_nino) %>%
+  summarize(
+    porcentaje_asistencia = mean(asistio_biblioteca_reciente == "Sí") * 100
+  )
+
+ggplot(library_habits, aes(x = asistencia_nino, y = porcentaje_asistencia, fill = asistencia_nino)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(porcentaje_asistencia, 1), "%")), vjust = -0.5) +
+  labs(
+    title = "Asistencia Reciente a Bibliotecas según la Experiencia en la Niñez (2019-2024)",
+    x = "De niño, ¿lo llevaban a bibliotecas o librerías?",
+    y = "% que SÍ asistió en los últimos 3 meses"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+PRUEBA DE hipótesis 
+
+H0= (La hipótesis nula): la asistencia a bibliotecas/librerias en la niñez y la asistencia en la adultez son independientes. 
+HA= (La hipótesis alternativa): la asistencia a bibliotecas/librerias en la niñez y en la adultez NO son independientes. 
+
+```{r}
+
+tabla_observada <- table(datos$asistencia_nino, datos$asistio_biblioteca_reciente)
+
+colnames(tabla_observada) <- c("Asistió Recientemente (No)", "Asistió Recientemente (Sí)")
+rownames(tabla_observada) <- c("No lo llevaban de niño", "Sí lo llevaban de niño")
+
+print(tabla_observada)
+```
+
+# 2da Prueba de Hipótesis
+
+```{r}
+# --- PRUEBA ANOVA (VERSIÓN SIMPLIFICADA) ---
+
+# Cargar las librerías necesarias
+library(dplyr)
+library(ggplot2)
+
+# Preparar los datos y crear la variable 'Generacion'
+datos_anova <- datos %>%
+  mutate(Generacion = case_when(
+    edad >= 60 ~ "Boomer",
+    edad >= 44 & edad <= 59 ~ "Gen X",
+    edad >= 28 & edad <= 43 ~ "Millennial",
+    edad >= 18 & edad <= 27 ~ "Gen Z",
+    TRUE ~ NA_character_
+  )) %>%
+  # Filtrar para no tener valores nulos
+  filter(!is.na(Generacion) & !is.na(p4))
+
+# Convertir a factor (paso clave para ANOVA)
+datos_anova$Generacion <- as.factor(datos_anova$Generacion)
+
+# Ajustar el modelo ANOVA
+modelo_anova <- aov(p4 ~ Generacion, data = datos_anova)
+
+# Mostrar la tabla de resultados del ANOVA
+# Esta tabla contiene el valor F y el p-valor
+cat("--- Tabla de Análisis de Varianza (ANOVA) ---\n")
+summary(modelo_anova)
+
+# El p-valor del summary anterior fue muy pequeño (< 2e-16),
+# por lo que rechazamos la hipótesis nula y procedemos con el análisis post-hoc.
+
+cat("\n--- Análisis Post-Hoc (Tukey HSD) ---\n")
+# Esta prueba compara cada par de generaciones
+tukey_resultados <- TukeyHSD(modelo_anova)
+
+# Imprimir los resultados de las comparaciones
+print(tukey_resultados)
+
+# Graficar los resultados de Tukey para una mejor interpretación visual
+# Si un intervalo de confianza no cruza la línea del cero, la diferencia es significativa.
+plot(tukey_resultados)
+```
+
+
+```{r}
+# --- PRUEBA T DE STUDENT (CON LA FUNCIÓN t.test) ---
+library(dplyr)
+
+# Preparar los datos
+datos_ttest <- datos %>%
+  mutate(sexo_cat = if_else(sexo == "1", "Hombre", "Mujer")) %>%
+  filter(!is.na(p26))
+
+# Nivel de significancia
+alpha <- 0.04
+
+# Ejecutar la prueba t de Student
+# R realiza la prueba de Welch por defecto, que es lo correcto cuando no se asumen varianzas iguales.
+# conf.level se ajusta a 1 - alpha
+resultado_ttest <- t.test(p26 ~ sexo_cat, data = datos_ttest, conf.level = 0.96)
+
+# Imprimir los resultados completos de la prueba
+cat("--- Resultados de la Prueba t para Minutos de Lectura por Sexo ---\n")
+print(resultado_ttest)
+
+# Interpretación final basada en el p-valor
+cat("\n--- Decisión y Conclusión ---\n")
+if (resultado_ttest$p.value < alpha) {
+  cat("Decisión: Se rechaza la hipótesis nula (H0).\n")
+  cat("Conclusión: La diferencia en los minutos promedio de lectura entre hombres y mujeres es estadísticamente significativa.\n")
+} else {
+  cat("Decisión: No se rechaza la hipótesis nula (H0).\n")
+  cat("Conclusión: No hay evidencia de una diferencia significativa en los minutos promedio de lectura entre hombres y mujeres.\n")
+}
+```
+
