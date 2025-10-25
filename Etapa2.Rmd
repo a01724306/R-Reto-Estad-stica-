@@ -9,7 +9,7 @@ library(dplyr)
 library(ggplot2)
 library(printr)
 
-setwd("/Users/alysjime/Downloads")
+#setwd("/Users/alysjime/Downloads")
 getwd()
 datos_2024 <- read.csv("Datos_molec_2024-1.csv")
 datos_2023 <- read.csv("Datos_molec_2023-1.csv")
@@ -266,7 +266,19 @@ ggplot(datos, aes(x = generacion, y = p26, fill = generacion)) +
   theme_minimal() +
   theme(legend.position = "none")
 ```
-
+```{r}
+#Libros leídos por año según la generación
+ggplot(datos, aes(x = generacion, y = p4, fill = generacion)) +
+  geom_boxplot(na.rm = TRUE) +
+  coord_cartesian(ylim = c(0, 180)) +
+  labs(
+    title = "Libros leídos por año por Generación (2019-2024)",
+    x = "Generación",
+    y = "Libros leídos por año"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
 ```{r}
 #Diccionario de entidades
 entidad_nombres <- data.frame(
