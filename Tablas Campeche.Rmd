@@ -11,6 +11,7 @@ library(printr)
 
 setwd("/Users/alysjime/Downloads")
 getwd()
+# Leer los 6 archivos de datos
 datos_2024 <- read.csv("Datos_molec_2024-1.csv")
 datos_2023 <- read.csv("Datos_molec_2023-1.csv")
 datos_2022 <- read.csv("Datos_molec_2022-1.csv")
@@ -97,6 +98,7 @@ datos %>%
 
 
 ```{r}
+# Crear una tabla para traducir el código de entidad a su nombre
 entidad_nombres <- data.frame(
   entidad = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
               "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", 
@@ -113,6 +115,7 @@ entidad_nombres <- data.frame(
 
 datos <- datos %>% mutate(entidad = formatC(entidad, width=2, flag="0"))
 
+# Calcular el promedio de libros leídos p4 por estado
 libros_por_entidad <- datos %>%
   filter(!is.na(p4)) %>%
   group_by(entidad) %>%
@@ -120,6 +123,7 @@ libros_por_entidad <- datos %>%
   left_join(entidad_nombres, by = "entidad") %>%
   filter(!is.na(nombre_entidad))
 
+# Crear la gráfica de barras
 ggplot(libros_por_entidad, aes(x = reorder(nombre_entidad, libros_promedio), y = libros_promedio)) +
   geom_col(aes(fill = libros_promedio)) +
   coord_flip() +
@@ -136,7 +140,7 @@ ggplot(libros_por_entidad, aes(x = reorder(nombre_entidad, libros_promedio), y =
 
 
 ```{r}
-
+# Crear tabla de niveles educativos por estado
 tabla_educacion_ancha <- datos %>%
   left_join(entidad_nombres, by = "entidad") %>%
   filter(
@@ -151,7 +155,7 @@ tabla_educacion_ancha <- datos %>%
     values_fill = 0
   )
 
-
+# Añadir columna de total por estado
 tabla_con_total <- tabla_educacion_ancha %>%
   mutate(
     Total_Personas = rowSums(select(., -nombre_entidad))
@@ -162,6 +166,7 @@ print(tabla_con_total)
 ```
 
 ```{r}
+# Convertir la tabla de conteos a porcentajes
 tabla_porcentajes <- tabla_con_total %>%
   
   mutate(
@@ -174,7 +179,7 @@ tabla_porcentajes <- tabla_con_total %>%
 print(tabla_porcentajes)
 ```
 ```{r}
-
+# Crear data frame manual con datos del Censo
 campeche_datos <- data.frame(
   "Entidad federativa" = "Campeche",
   "Sexo" = "Total",
@@ -192,6 +197,7 @@ campeche_datos <- data.frame(
 print("Tabla de Datos Campeche")
 print(campeche_datos)
 
+# Calcular porcentajes para los datos del Censo
 campeche_porcentajes <- campeche_datos %>%
   mutate(
     across(
