@@ -88,7 +88,7 @@ library_habits <- datos %>%
   summarize(
     porcentaje_asistencia = mean(asistio_biblioteca_reciente == "Sí") * 100
   )
-
+# Graficar los porcentajes
 ggplot(library_habits, aes(x = asistencia_nino, y = porcentaje_asistencia, fill = asistencia_nino)) +
   geom_col() +
   geom_text(aes(label = paste0(round(porcentaje_asistencia, 1), "%")), vjust = -0.5) +
@@ -108,6 +108,7 @@ HA= (La hipótesis alternativa): la asistencia a bibliotecas/librerias en la ni�
 
 ```{r setup, include=FALSE}
 
+# Crear tabla de contingencia
 tabla_observada <- table(datos$asistencia_nino, datos$asistio_biblioteca_reciente)
 
 colnames(tabla_observada) <- c("Asistió Recientemente (No)", "Asistió Recientemente (Sí)")
@@ -117,21 +118,22 @@ print(tabla_observada)
 ```
 
 ```{r}
+# Realizar la prueba Chi-cuadrada
 resultado_chi <- chisq.test(tabla_observada)
 resultado_chi
 ```
 ```{r}
-
+# Imprimir las frecuencias esperadas
 cat("Tabla de Frecuencias Esperadas:\n")
 print(round(resultado_chi$expected, 2))
 
-
+# Imprimir un resumen de la prueba
 cat("\n La Prueba Chi-cuadrada\n")
 cat("Estadístico Chi^2 =", round(resultado_chi$statistic, 3), "\n")
 cat("Grados de libertad (df) =", resultado_chi$parameter, "\n")
 cat("p-valor =", resultado_chi$p.value, "\n\n")
 
-
+# Comparar p-valor con el nivel de significancia
 alpha <- 0.04
 if (resultado_chi$p.value < alpha) {
   cat(" Conclusión: Se rechaza la Hipótesis Nula (H0).\n")
