@@ -1,0 +1,1216 @@
+---
+title: "Codigo Completo"
+author: "Lenin Caballero"
+date: "2025-10-25"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Limpieza de datos
+Por cada base de datos se realiza una exploración inicial para entender su estructura y se seleccionan únicamente las variables demográficas y de hábitos de lectura relevantes para el estudio. Se revisan datos faltantes (NA's) para evaluar la calidad y completitud de la información antes de proceder con análisis más complejos
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(printr)
+
+#setwd("/Users/Elmar/Downloads")
+getwd()
+datos_2024 <- read.csv("Datos_molec_2024-1.csv", na.strings = c("", "NA"))
+
+str(datos_2024) #Muestra la estructura de la base de datos
+names(datos_2024) #Muestra la lista de nombres de las variables
+head(datos_2024) #Muestra las primeras 6 filas
+View(datos_2024) #Muestra los datos en una nueva pestaña
+print(dim(datos_2024))
+summary(datos_2024) #Revisa si hay datos faltantes
+
+#Número de encuestas por estado
+estados_n_2024 <- datos_2024 %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2024)
+
+#Número de encuestas por género
+sexo_n_2024 <- datos_2024 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2024)
+
+#Por nivel educativo
+datos_2024 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+#Conteo por edad
+datos_2024 %>%
+  count(edad) %>%
+  arrange(edad)
+
+variables_seleccionadas <- c(
+  #Variables demográficas
+  "entidad", 
+  "sexo", 
+  "edad", 
+  "nivel",
+  
+  #Variables de las preguntas sobre hábitos de lectura
+  "p1", #¿Sabe leer y escribir un recado?
+  "p2", #¿Acostumbra leer?
+  "p4", #¿Cuántos libros leyó en los últimos doce meses?
+  "p10", #¿Cuántas revistas leyó en los últimos tres meses?
+  "p16", #¿Cuántos periódicos leyó la semana pasada?
+  "p22", #¿Acostumbra leer historietas?
+  "p3_5", #¿Lee páginas de Internet, foros o blogs?
+  "p26", #¿Minutos continuos que lee?
+  "p31", #¿Consulta otros materiales para más información?
+  "p33_3", #¿Asistió a una biblioteca?
+  "p33_4", #¿Asistió a una librería?
+  "p34_1" #De niño(a), ¿lo llevaban a bibliotecas o librerías?
+)
+
+df_final_2024 <- datos_2024 %>%
+select(all_of(variables_seleccionadas))
+print(head(df_final_2024))
+
+valores_faltantes = colSums(is.na(df_final_2024))
+
+porcentaje_faltantes = (valores_faltantes / nrow(df_final_2024)) * 100
+
+reporte = data.frame(
+  Variable = names(porcentaje_faltantes),
+  Porcentaje_Faltantes = porcentaje_faltantes
+)
+
+reporte_final <- reporte %>%
+print(reporte_final)
+```
+
+```{r}
+
+datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+
+str(datos_2023) #Muestra la estructura de la base de datos
+names(datos_2023) #Muestra la lista de nombres de las variables
+head(datos_2023) #Muestra las primeras 6 filas
+View(datos_2023) #Muestra los datos en una nueva pestaña
+print(dim(datos_2023))
+summary(datos_2023) #Revisa si hay datos faltantes 
+
+
+#Número de encuestas por estado
+estados_n_2023 <- datos_2023 %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2023)
+
+#Número de encuestas por género
+sexo_n_2023 <- datos_2023 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2023)
+
+#Por nivel educativo
+datos_2023 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+#Conteo por edad
+datos_2023 %>%
+  count(edad) %>%
+  arrange(edad)
+
+variables_seleccionadas <- c(
+  "entidad", "sexo", "edad", "nivel", "p1", "p2", "p4", "p10", 
+  "p16", "p22", "p3_5", "p26", "p31", "p33_3", "p33_4", "p34_1"
+)
+
+#Data frame
+df_final_2023 <- datos_2023 %>%
+  select(all_of(variables_seleccionadas))
+print(head(df_final_2023))
+
+#Calcular el porcentaje de datos faltantes
+valores_faltantes_2023 <- colSums(is.na(df_final_2023))
+porcentaje_faltantes_2023 <- (valores_faltantes_2023 / nrow(df_final_2023)) * 100
+
+#Crear el dataframe con el reporte
+reporte_2023 <- data.frame(
+  Variable = names(porcentaje_faltantes_2023),
+  Porcentaje_Faltantes = porcentaje_faltantes_2023
+)
+
+print(reporte_2023)
+```
+
+```{r}
+
+datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+
+str(datos_2022) #Muestra la estructura de la base de datos
+names(datos_2022) #Muestra la lista de nombres de las variables
+head(datos_2022) #Muestra las primeras 6 filas
+View(datos_2022) #Muestra los datos en una nueva pestaña
+print(dim(datos_2022))
+summary(datos_2022) #Revisa si hay datos faltantes 
+
+
+#Número de encuestas por estado
+estados_n_2022 <- datos_2022 %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2022)
+
+#Número de encuestas por género
+sexo_n_2022 <- datos_2022 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2022)
+
+#Por nivel educativo
+datos_2022 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+#Conteo por edad
+datos_2022 %>%
+  count(edad) %>%
+  arrange(edad)
+
+variables_seleccionadas <- c(
+  "entidad", "sexo", "edad", "nivel", "p1", "p2", "p4", "p10", 
+  "p16", "p22", "p3_5", "p26", "p31", "p33_3", "p33_4", "p34_1"
+)
+
+#Data frame
+df_final_2022 <- datos_2022 %>%
+  select(all_of(variables_seleccionadas))
+print(head(df_final_2022))
+
+#Calcular el porcentaje de datos faltantes
+valores_faltantes_2022 <- colSums(is.na(df_final_2022))
+porcentaje_faltantes_2022 <- (valores_faltantes_2022 / nrow(df_final_2022)) * 100
+
+#Crear el dataframe con el reporte
+reporte_2022 <- data.frame(
+  Variable = names(porcentaje_faltantes_2022),
+  Porcentaje_Faltantes = porcentaje_faltantes_2022
+)
+
+print(reporte_2022)
+```
+
+
+```{r}
+
+datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+
+str(datos_2021) #Muestra la estructura de la base de datos
+names(datos_2021) #Muestra la lista de nombres de las variables
+head(datos_2021) #Muestra las primeras 6 filas
+View(datos_2021) #Muestra los datos en una nueva pestaña
+print(dim(datos_2021))
+summary(datos_2021) #Revisa si hay datos faltantes 
+
+
+#Número de encuestas por estado
+estados_n_2021 <- datos_2021 %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2021)
+
+#Número de encuestas por género
+sexo_n_2021 <- datos_2021 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2021)
+
+#Por nivel educativo
+datos_2021 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+#Conteo por edad
+datos_2021 %>%
+  count(edad) %>%
+  arrange(edad)
+
+variables_seleccionadas <- c(
+  "entidad", "sexo", "edad", "nivel", "p1", "p2", "p4", "p10", 
+  "p16", "p22", "p3_5", "p26", "p31", "p33_3", "p33_4", "p34_1"
+)
+
+#Data frame
+df_final_2021 <- datos_2021 %>%
+  select(all_of(variables_seleccionadas))
+print(head(df_final_2021))
+
+#Calcular el porcentaje de datos faltantes
+valores_faltantes_2021 <- colSums(is.na(df_final_2021))
+porcentaje_faltantes_2021 <- (valores_faltantes_2021 / nrow(df_final_2021)) * 100
+
+#Crear el dataframe con el reporte
+reporte_2021 <- data.frame(
+  Variable = names(porcentaje_faltantes_2021),
+  Porcentaje_Faltantes = porcentaje_faltantes_2021
+)
+
+print(reporte_2021)
+```
+```{r}
+
+datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+
+str(datos_2020) #Muestra la estructura de la base de datos
+names(datos_2020) #Muestra la lista de nombres de las variables
+head(datos_2020) #Muestra las primeras 6 filas
+View(datos_2020) #Muestra los datos en una nueva pestaña
+print(dim(datos_2020) )
+summary(datos_2020) #Revisa si hay datos faltantes 
+
+
+#Número de encuestas por estado
+estados_n_2020 <- (datos_2020)  %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2020)
+
+#Número de encuestas por género
+sexo_n_2020 <- datos_2020 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2020)
+
+#Por nivel educativo
+datos_2020 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+#Conteo por edad
+datos_2020 %>%
+  count(edad) %>%
+  arrange(edad)
+
+variables_seleccionadas <- c(
+  "entidad", "sexo", "edad", "nivel", "p1", "p2", "p4", "p10", 
+  "p16", "p22", "p3_5", "p26", "p31", "p33_3", "p33_4", "p34_1"
+)
+
+#Data frame
+df_final_2020 <- datos_2020 %>%
+  select(all_of(variables_seleccionadas))
+print(head(df_final_2020))
+
+#Calcular el porcentaje de datos faltantes
+valores_faltantes_2020 <- colSums(is.na(df_final_2020))
+porcentaje_faltantes_2020 <- (valores_faltantes_2020 / nrow(df_final_2020)) * 100
+
+#Crear el dataframe con el reporte
+reporte_2020 <- data.frame(
+  Variable = names(porcentaje_faltantes_2020),
+  Porcentaje_Faltantes = porcentaje_faltantes_2020
+)
+
+print(reporte_2020)
+```
+
+
+```{r}
+
+datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+
+str(datos_2019) #Muestra la estructura de la base de datos
+names(datos_2019) #Muestra la lista de nombres de las variables
+head(datos_2019) #Muestra las primeras 6 filas
+View(datos_2019) #Muestra los datos en una nueva pestaña
+print(dim(datos_2019))
+summary(datos_2019) #Revisa si hay datos faltantes 
+
+
+#Número de encuestas por estado
+estados_n_2019 <- (datos_2019)  %>% 
+  group_by(entidad) %>% 
+  summarize(numero = n())
+print(estados_n_2019)
+
+#Número de encuestas por género
+sexo_n_2019 <- datos_2019 %>% 
+  group_by(sexo) %>% 
+  summarize(numero = n())
+print(sexo_n_2019)
+
+#Por nivel educativo
+datos_2019 %>%
+  count(nivel) %>%
+  arrange(desc(n))
+
+#Conteo por edad
+datos_2019 %>%
+  count(edad) %>%
+  arrange(edad)
+
+variables_seleccionadas <- c(
+  "entidad", "sexo", "edad", "nivel", "p1", "p2", "p4", "p10", 
+  "p16", "p22", "p3_5", "p26", "p31", "p33_3", "p33_4", "p34_1"
+)
+
+#Data frame
+df_final_2019 <- datos_2019 %>%
+  select(all_of(variables_seleccionadas))
+print(head(df_final_2019))
+
+#Calcular el porcentaje de datos faltantes
+valores_faltantes_2019 <- colSums(is.na(df_final_2019))
+porcentaje_faltantes_2019 <- (valores_faltantes_2019 / nrow(df_final_2019)) * 100
+
+#Crear el dataframe con el reporte
+reporte_2019 <- data.frame(
+  Variable = names(porcentaje_faltantes_2019),
+  Porcentaje_Faltantes = porcentaje_faltantes_2019
+)
+
+print(reporte_2019)
+```
+
+
+# Análisis Descriptivo 
+En esta sección se unifican las 6 bases de datos en un solo conjunto. Se limpian y transforman las variables, creando categorías como 'Generación' a partir de la edad y asignando etiquetas de texto a valores numéricos. El objetivo es generar tablas de resumen y diversas visualizaciones (gráficos de barras, boxplots, etc.) para explorar patrones y distribuciones en los datos.
+
+```{r}
+# Se importan las librerias necesarias y las 6 bases de datos a analizar 
+library(dplyr)
+library(ggplot2)
+library(printr)
+
+#setwd("/Users/Elmar/Downloads")
+#getwd()
+#datos_2024 <- read.csv("Datos_molec_2024-1.csv")
+#datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+#datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+#datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+#datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+#datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+```
+
+
+```{r}
+# Se filtran solo las variables que se van a utilizar
+
+d_2024 <- datos_2024 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2023 <- datos_2023 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2022 <- datos_2022 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2021 <- datos_2021 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2020 <- datos_2020 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2019 <- datos_2019 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+```
+
+
+```{r}
+# Se añade columna de año para poder combinar y comparar los datos
+d_2024 <- d_2024 %>% 
+  mutate(anio= 2024)
+
+d_2023 <- d_2023 %>% 
+  mutate(anio= 2023)
+
+d_2022 <- d_2022 %>% 
+  mutate(anio= 2022)
+
+d_2021 <- d_2021 %>% 
+  mutate(anio= 2021)
+
+d_2020 <- d_2020 %>% 
+  mutate(anio= 2020)
+
+d_2019 <- d_2019 %>% 
+  mutate(anio= 2019)
+
+#Combinar todos los años
+datos <- bind_rows(d_2024,d_2023,d_2022,d_2021,d_2020,d_2019)
+glimpse(datos)
+
+# Se calcula el porcentaje de datos faltantes
+missing_summary <- datos %>%
+  summarise(
+    porcentaje_NA_edad = (sum(is.na(edad)) / n()) * 100,
+    porcentaje_NA_anio = (sum(is.na(anio)) / n()) * 100
+  )
+
+# Imprimimos los resultados 
+print(round(missing_summary, 2))
+
+```
+
+```{r}
+# Utilizando el año de nacimiento se agrupa por generacion
+datos <- datos %>%
+  mutate(
+    anio_de_nacimiento = anio - edad,
+    generacion = case_when(
+      anio_de_nacimiento >= 1997 ~ "Gen Z",
+      anio_de_nacimiento >= 1981 & anio_de_nacimiento <= 1996 ~ "Millennial",
+      anio_de_nacimiento >= 1965 & anio_de_nacimiento <= 1980 ~ "Gen X",
+      anio_de_nacimiento <= 1964 ~ "Boomer"
+    )
+  ) %>%
+  select(-anio_de_nacimiento)
+
+datos %>%
+  count(generacion, sort = TRUE)
+```
+
+
+
+```{r}
+#Remplazar valores 1 y 2 con "Mujer" y "Hombre"
+datos <- datos %>%
+    mutate(sexo = case_when(
+      sexo == 1 ~ "Hombre",
+      sexo == 2 ~ "Mujer"
+  )
+    )
+#Analisis por Sexo
+datos %>% 
+ count(p4, sort=TRUE)
+
+rows_with_b <- datos %>%
+  filter(p2 == "b")
+
+#Promedio de libros leidos por sexo
+books_by_sex_year <- datos %>%
+  group_by(anio, sexo) %>%
+  summarize(libros_promedio = mean(p4), .groups = 'drop')
+
+#Grafica de barra
+ggplot(books_by_sex_year, aes(x = anio, y = libros_promedio, fill = sexo)) +
+  geom_col(position = "dodge") + 
+  labs(
+    title = "Promedio Anual de Libros Leídos por Sexo",
+    x = "Año",
+    y = "Número de Libros Promedio",
+    fill = "Sexo"
+  )
+```
+
+```{r}
+# Graficamos lo libros leidos por generación 
+books_by_gen_year <- datos %>%
+  group_by(anio, generacion) %>%
+  summarize(libros_promedio = mean(p4), .groups = 'drop') %>%
+  filter(!is.na(generacion))
+
+ggplot(books_by_gen_year, aes(x = anio, y = libros_promedio, color = generacion)) +
+  geom_line(linewidth = 1.5) +
+  geom_point(size = 3) +
+  labs(
+    title = "Promedio Anual de Libros Leídos por Generación",
+    x = "Año",
+    y = "Número de Libros Promedio",
+    color = "Generación"
+  )
+```
+
+```{r}
+# Asingamos valores segun nivel de escolaridad
+datos <- datos %>%
+  mutate(nivel_educativo_detallado = case_when(
+    nivel == 0 ~ "Ninguno",
+    nivel == 01 ~ "Preescolar",
+    nivel == 02 ~ "Primaria",
+    nivel == 03 ~ "Secundaria",
+    nivel == 04 ~ "Preparatoria",
+    nivel == 05 ~ "Normal básica",
+    nivel == 06 ~ "Carrera técnica",
+    nivel == 07 ~ "Profesional",
+    nivel == 08 ~ "Maestría",
+    nivel == 09 ~ "Doctorado",
+    nivel == 99 ~ "No sabe"
+  ))
+
+books_by_education_detailed <- datos %>%
+  group_by(anio, nivel_educativo_detallado) %>%
+  summarize(libros_promedio = mean(p4), .groups = 'drop') %>%
+  filter(nivel_educativo_detallado != "No sabe" & !is.na(nivel_educativo_detallado))
+
+# Graficamos promedio anual de lirbos leidos por generación 
+ggplot(books_by_education_detailed, aes(x = anio, y = libros_promedio, color = nivel_educativo_detallado)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5) +
+  labs(
+    title = "Promedio Anual de Libros Leídos por Nivel Educativo",
+    x = "Año",
+    y = "Número de Libros Promedio",
+    color = "Nivel Educativo"
+  )
+
+```
+
+```{r}
+# Se reemplaza valores 1 y 2 con "Sú lo llevaban" y "No lo llevaban"
+datos <- datos %>%
+  mutate(
+    asistencia_nino = case_when(
+      p33_1 == "1" ~ "Sí lo llevaban",
+      p33_1 == "2" ~ "No lo llevaban",
+    ),
+    asistio_biblioteca_reciente = case_when(
+      p33_3 == "1" ~ "Sí",
+      p33_3 == "2" ~ "No",
+    ),
+    asistio_libreria_reciente = case_when(
+      p33_4 == "1" ~ "Sí",
+      p33_4 == "2" ~ "No",
+    )
+  )
+
+library_habits <- datos %>% #biblioteca
+  filter(!is.na(asistencia_nino) & !is.na(asistio_biblioteca_reciente)) %>%
+  group_by(asistencia_nino) %>%
+  summarize(
+    porcentaje_asistencia = mean(asistio_biblioteca_reciente == "Sí") * 100
+  ) %>%
+  mutate(lugar = "Biblioteca") #columna biblioteca
+
+bookstore_habits <- datos %>% #librería
+  filter(!is.na(asistencia_nino) & !is.na(asistio_libreria_reciente)) %>%
+  group_by(asistencia_nino) %>%
+  summarize(
+    porcentaje_asistencia = mean(asistio_libreria_reciente == "Sí") * 100
+  ) %>%
+  mutate(lugar = "Librería") #columna librería
+
+summary_habits <- bind_rows(library_habits, bookstore_habits)
+
+# Se grafica la asistencia a la biblioteca y librerias segun la experiencia en la niñez
+ggplot(summary_habits, aes(x = asistencia_nino, y = porcentaje_asistencia, fill = lugar)) +
+  geom_col(position = "dodge") +
+  geom_text(
+    aes(label = paste0(round(porcentaje_asistencia, 1), "%")),
+    position = position_dodge(width = 0.9),
+    vjust = -0.5
+  ) +
+  labs(
+    title = "Asistencia a Bibliotecas y Librerías según la Experiencia en la Niñez",
+    x = "De niño, ¿lo llevaban a estos lugares?",
+    y = "% que SÍ asistió recientemente",
+    fill = "Lugar visitado"
+  ) +
+  theme_minimal()
+```
+
+
+```{r}
+#Minutos de lectura continuos según la generación
+ggplot(datos, aes(x = generacion, y = p26, fill = generacion)) +
+  geom_boxplot(na.rm = TRUE) +
+  coord_cartesian(ylim = c(0, 180)) +
+  labs(
+    title = "Minutos de Lectura Continua por Generación (2019-2024)",
+    x = "Generación",
+    y = "Minutos Continuos de Lectura"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+#Diccionario de entidades
+entidad_nombres <- data.frame(
+  entidad = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
+              "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", 
+              "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", 
+              "31", "32"),
+  nombre_entidad = c("Aguascalientes", "Baja California", "Baja California Sur", "Campeche", 
+                     "Coahuila", "Colima", "Chihuahua", "Chiapas", "Ciudad de México", 
+                     "Durango", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", 
+                     "México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", 
+                     "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", 
+                     "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", 
+                     "Veracruz", "Yucatán", "Zacatecas")
+)
+
+datos <- datos %>% mutate(entidad = formatC(entidad, width=2, flag="0"))
+
+lectura_por_entidad <- datos %>%
+  filter(!is.na(p26)) %>%
+  group_by(entidad) %>%
+  summarize(minutos_promedio = mean(p26, na.rm = TRUE), .groups = 'drop') %>%
+  left_join(entidad_nombres, by = "entidad") %>%
+  filter(!is.na(nombre_entidad))
+
+# Se grafica los minutos de lectura continua por estado
+ggplot(lectura_por_entidad, aes(x = reorder(nombre_entidad, minutos_promedio), y = minutos_promedio)) +
+  geom_col(aes(fill = minutos_promedio)) +
+  coord_flip() + 
+  scale_fill_gradient(low = "#a8ddb5", high = "#2b8cbe") + 
+  labs(
+    title = "Ranking de Minutos de Lectura Continua por Estado",
+    subtitle = "Promedio de todos los años (2019-2024)",
+    x = "Estado",
+    y = "Minutos Promedio de Lectura"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+
+```{r}
+entidad_nombres <- data.frame(
+  entidad = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
+              "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", 
+              "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", 
+              "31", "32"),
+  nombre_entidad = c("Aguascalientes", "Baja California", "Baja California Sur", "Campeche", 
+                     "Coahuila", "Colima", "Chiapas", "Chihuahua", "Ciudad de México", 
+                     "Durango", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", 
+                     "México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", 
+                     "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", 
+                     "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", 
+                     "Veracruz", "Yucatán", "Zacatecas")
+)
+
+datos <- datos %>% mutate(entidad = formatC(entidad, width=2, flag="0"))
+
+libros_por_entidad <- datos %>%
+  filter(!is.na(p4)) %>%
+  group_by(entidad) %>%
+  summarize(libros_promedio = mean(p4, na.rm = TRUE), .groups = 'drop') %>%
+  left_join(entidad_nombres, by = "entidad") %>%
+  filter(!is.na(nombre_entidad))
+
+# Se grafica por la cantidad de libros leidos por entidad
+ggplot(libros_por_entidad, aes(x = reorder(nombre_entidad, libros_promedio), y = libros_promedio)) +
+  geom_col(aes(fill = libros_promedio)) +
+  coord_flip() +
+  scale_fill_gradient(low = "#a8ddb1", high = "#2b8cbe") +
+  labs(
+    title = "Ranking de Libros Leídos por Estado",
+    subtitle = "Promedio de todos los años (2019-2024)",
+    x = "Estado",
+    y = "Libros Promedio Leídos"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+
+```{r}
+# Se grafica la frecuencia de minutos de lectura de hombres y mujeres
+par(mfrow = c(1, 2))
+
+hist(
+  datos$p26[datos$sexo == "Hombre"],
+  main = "Hombres",
+  xlab = "Minutos de Lectura",
+  ylab = "Frecuencia",
+  col = "skyblue3",
+  breaks = 20,
+  xlim = c(0, 180),
+  ylim = c(0,4000)
+)
+
+hist(
+  datos$p26[datos$sexo == "Mujer"],
+  main = "Mujeres",
+  xlab = "Minutos de Lectura",
+  ylab = "Frecuencia",
+  col = "salmon",
+  breaks = 20,
+  xlim = c(0, 180),
+  ylim = c(0,4000)
+
+)
+
+par(mfrow = c(1, 1))
+```
+
+```{r}
+# --- Histograma Facetado por Sexo y Año ---
+
+# Nos aseguramos que las variables a usar estén limpias
+datos <- datos %>%
+  mutate(
+    p26 = as.numeric(as.character(p26)),
+    anio = as.factor(anio) # Tratar el año como categoría es mejor para facetas
+  )
+
+ggplot(datos %>% filter(!is.na(p26) & !is.na(sexo)), aes(x = p26, fill = sexo)) +
+  geom_histogram(binwidth = 10, na.rm = TRUE, show.legend = FALSE) +
+  scale_fill_manual(values = c("Hombre" = "skyblue3", "Mujer" = "salmon")) +
+  
+  # La clave: facet_grid() crea la cuadrícula. Filas por año, columnas por sexo.
+  facet_grid(anio ~ sexo) +
+  
+  # Limitamos el eje X para una mejor comparación visual
+  coord_cartesian(xlim = c(0, 180)) +
+  
+  labs(
+    title = "Distribución de Minutos de Lectura por Sexo y Año",
+    x = "Minutos Continuos de Lectura (p26)",
+    y = "Frecuencia"
+  ) +
+  theme_minimal()
+```
+
+
+```{r}
+datos <- datos %>%
+  mutate(
+    consulta_fuentes = case_when(
+      p31 == "1" ~ "Sí consulta otras fuentes",
+      p31 == "2" ~ "No consulta otras fuentes",
+      TRUE ~ NA_character_
+    )
+  )
+
+ggplot(
+  datos %>% filter(!is.na(consulta_fuentes) & !is.na(generacion)),
+  aes(x = generacion, fill = consulta_fuentes)
+) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("Sí consulta otras fuentes" = "#2c7fb8", "No consulta otras fuentes" = "cyan2")) +
+  
+  facet_wrap(~ anio) +
+  
+  labs(
+    title = "Lectores que Consultan Otras Fuentes por Generación y Año",
+    subtitle = "Comparación de proporciones anuales",
+    x = "Generación",
+    y = "Porcentaje",
+    fill = "Comportamiento"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r}
+library(e1071)
+
+tabla_descriptiva_edad <- datos %>%
+  filter(!is.na(edad)) %>%
+  group_by(anio) %>%
+  summarize(
+    Minimo = min(edad, na.rm = TRUE),
+    Q1 = quantile(edad, 0.25, na.rm = TRUE),
+    Mediana = median(edad, na.rm = TRUE),
+    Media = mean(edad, na.rm = TRUE),
+    Q3 = quantile(edad, 0.75, na.rm = TRUE),
+    Maximo = max(edad, na.rm = TRUE),
+    Desv_Est = sd(edad, na.rm = TRUE),
+    Sesgo = skewness(edad, na.rm = TRUE),
+    Curtosis = kurtosis(edad, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+
+  mutate(
+    Rango_Medio = (Maximo - Minimo) / 2,
+    CV = (Desv_Est / Media)
+  ) %>%
+  select(
+    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
+    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
+  )
+
+tabla_final <- t(select(tabla_descriptiva_edad, -anio))
+colnames(tabla_final) <- tabla_descriptiva_edad$anio
+
+rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
+                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
+
+round(tabla_final, 2)
+```
+
+```{r}
+library(e1071)
+
+tabla_descriptiva_p4 <- datos %>%
+  filter(!is.na(p4)) %>%
+  group_by(anio) %>%
+  summarize(
+    Minimo = min(p4, na.rm = TRUE),
+    Q1 = quantile(p4, 0.25, na.rm = TRUE),
+    Mediana = median(p4, na.rm = TRUE),
+    Media = mean(p4, na.rm = TRUE),
+    Q3 = quantile(p4, 0.75, na.rm = TRUE),
+    Maximo = max(p4, na.rm = TRUE),
+    Desv_Est = sd(p4, na.rm = TRUE),
+    Sesgo = skewness(p4, na.rm = TRUE),
+    Curtosis = kurtosis(p4, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+
+  mutate(
+    Rango_Medio = (Maximo - Minimo) / 2,
+    CV = (Desv_Est / Media)
+  ) %>%
+  select(
+    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
+    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
+  )
+
+tabla_final <- t(select(tabla_descriptiva_p4, -anio))
+colnames(tabla_final) <- tabla_descriptiva_p4$anio
+
+rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
+                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
+
+round(tabla_final, 2)
+```
+
+
+```{r}
+library(e1071)
+
+tabla_descriptiva_p26 <- datos %>%
+  filter(!is.na(p26)) %>%
+  group_by(anio) %>%
+  summarize(
+    Minimo = min(p26, na.rm = TRUE),
+    Q1 = quantile(p26, 0.25, na.rm = TRUE),
+    Mediana = median(p26, na.rm = TRUE),
+    Media = mean(p26, na.rm = TRUE),
+    Q3 = quantile(p26, 0.75, na.rm = TRUE),
+    Maximo = max(p26, na.rm = TRUE),
+    Desv_Est = sd(p26, na.rm = TRUE),
+    Sesgo = skewness(p26, na.rm = TRUE),
+    Curtosis = kurtosis(p26, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+
+  mutate(
+    Rango_Medio = (Maximo - Minimo) / 2,
+    CV = (Desv_Est / Media)
+  ) %>%
+  select(
+    anio, Minimo, Q1, Mediana, Media, Q3, Maximo, 
+    Rango_Medio, Desv_Est, CV, Sesgo, Curtosis
+  )
+
+tabla_final <- t(select(tabla_descriptiva_p26, -anio))
+colnames(tabla_final) <- tabla_descriptiva_p26$anio
+
+rownames(tabla_final) <- c("Minimo", "Q1", "Mediana", "Media", "Q3", "Máximo", 
+                           "Desv Est", "Sesgo", "Curtosis", "Rango Medio", "CV")
+
+round(tabla_final, 2)
+```
+```{r}
+entidades_unicas <- unique(datos$entidad)
+promedio_educativo_entidad <- data.frame(
+  entidad = character(),
+  promedio_nivel = numeric()
+)
+
+for (ent in entidades_unicas) {
+  
+  datos_filtrados <- datos %>% filter(entidad == ent)
+  promedio_actual <- mean(datos_filtrados$nivel, na.rm = TRUE)
+  nueva_fila <- data.frame(entidad = ent, promedio_nivel = promedio_actual)
+  promedio_educativo_entidad <- bind_rows(promedio_educativo_entidad, nueva_fila)
+}
+
+promedio_educativo_entidad <- promedio_educativo_entidad %>%
+  left_join(entidad_nombres, by = "entidad") %>%
+  arrange(desc(promedio_nivel)) #Ordena
+
+print(promedio_educativo_entidad)
+
+promedio_educativo_dplyr <- datos %>%
+  filter(nivel != 99) %>% #Quitar el 99 para evitar alteración de datos
+  group_by(entidad) %>% 
+  summarize(
+    promedio_nivel = mean(nivel, na.rm = TRUE) 
+  ) %>%
+  left_join(entidad_nombres, by = "entidad") %>% 
+  arrange(desc(promedio_nivel))
+
+print(promedio_educativo_dplyr)
+```
+
+```{r}
+datos %>% 
+  filter(nivel>"09") %>% 
+  count(nivel)
+```
+
+
+# Analisis Inferencial 
+Aquí se ejecutan las pruebas estadísticas formales para validar las hipótesis del estudio. Se implementa una prueba ANOVA para comparar medias entre generaciones, una prueba t-Student para comparar medias entre sexos, y una prueba Chi-cuadrada para evaluar la asociación entre hábitos de lectura. Una parte fundamental es la verificación de los supuestos de cada prueba (normalidad, homocedasticidad) para asegurar la validez de las conclusiones.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+#Datos
+datos_2024 <- read.csv("Datos_molec_2024-1.csv")
+datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+
+datos <- bind_rows(datos_2024, datos_2023, datos_2022, datos_2021, datos_2020, datos_2019)
+
+#Crear columnas categóricas descriptivas
+datos <- datos %>%
+  mutate(
+    sexo_cat = if_else(sexo == "1", "Hombre", "Mujer"),
+    asistencia_nino = case_when(
+      p33_1 == "1" ~ "Sí lo llevaban",
+      p33_1 == "2" ~ "No lo llevaban",
+    ),
+    asistio_biblioteca_reciente = case_when(
+      p33_3 == "1" ~ "Sí",
+      p33_3 == "2" ~ "No",
+    ),
+    asistio_libreria_reciente = case_when(
+      p33_4 == "1" ~ "Sí",
+      p33_4 == "2" ~ "No",
+    ),
+    Nivel_Educativo = case_when(
+        nivel == "7" ~ "Profesional",
+        nivel == "9" ~ "Doctorado",
+        TRUE ~ "Otro"
+    ),
+    Generacion = case_when(
+      edad >= 60 ~ "Boomer",
+      edad >= 44 & edad <= 59 ~ "Gen X",
+      edad >= 28 & edad <= 43 ~ "Millennial",
+      edad >= 18 & edad <= 27 ~ "Gen Z"
+    )
+  )
+
+#dataframes filtrados para análisis específicos
+datos_anova <- datos %>% filter(!is.na(Generacion) & !is.na(p4))
+datos_ttest <- datos %>% filter(!is.na(p26))
+datos_campeche <- datos %>% filter(entidad == "4" & !is.na(p26))
+datos_educacion <- datos %>% filter(Nivel_Educativo %in% c("Doctorado", "Profesional") & !is.na(p4))
+
+
+# PRUEBAS DE HIPÓTESIS Y GRÁFICAS
+alpha <- 0.04
+
+#Prueba 1: Chi-Cuadrada 
+cat("\n\n--- PRUEBA 1: CHI-CUADRADA ---\n")
+tabla_observada <- table(datos$asistencia_nino, datos$asistio_biblioteca_reciente)
+prueba_chi <- chisq.test(tabla_observada)
+print(prueba_chi)
+
+#Valor frontera
+gl_chi <- prueba_chi$parameter
+valor_frontera_chi <- qchisq(1 - alpha, df = gl_chi)
+cat("\nValor Frontera (Crítico) χ²:", round(valor_frontera_chi, 3), "\n")
+
+#Gráfico de la prueba Chi-Cuadrada
+xe <- prueba_chi$statistic; xf <- valor_frontera_chi
+x_max <- max(xe, xf) * 1.2; x <- seq(0, x_max, length.out = 500); y <- dchisq(x, df = gl_chi)
+plot(x, y, type = "l", lwd = 2, main = "Prueba Chi-Cuadrada", xlab = paste("Distribución χ² con", gl_chi, "gl"), ylab = "Densidad")
+x_sombreado <- seq(xf, x_max, length.out = 100); y_sombreado <- dchisq(x_sombreado, df = gl_chi)
+polygon(c(xf, x_sombreado, x_max), c(0, y_sombreado, 0), col = rgb(1, 0, 0, 0.3))
+abline(v = xf, col = "red", lty = 2, lwd = 2); text(xf, max(y) * 0.6, paste("Frontera\n", round(xf, 2)), pos = 2, col = "red")
+abline(v = xe, col = "blue", lty = 1, lwd = 2); text(xe, max(y) * 0.3, paste("Estadístico\n χ² =", round(xe, 2)), pos = 2, col = "blue")
+
+#Prueba 2: ANOVA 
+cat("\n\n--- PRUEBA 2: ANOVA ---\n")
+modelo_anova <- aov(p4 ~ Generacion, data = datos_anova)
+sumario_anova <- summary(modelo_anova)
+print(sumario_anova)
+
+#Valor frontera
+gl_num <- sumario_anova[[1]]$Df[1]
+gl_den <- sumario_anova[[1]]$Df[2]
+valor_frontera_f <- qf(1 - alpha, gl_num, gl_den)
+cat("\nValor Frontera (Crítico) F:", round(valor_frontera_f, 3), "\n")
+
+#Gráfico de Cajas para ANOVA
+print(
+  ggplot(datos_anova, aes(x = Generacion, y = p4, fill = Generacion)) +
+    geom_boxplot() +
+    labs(title = "Distribución de Libros Leídos por Generación", y = "Número de Libros Leídos") +
+    theme_minimal()
+)
+
+#Análisis Post-Hoc con su gráfico
+cat("\n--- Análisis Post-Hoc (Tukey HSD) ---\n")
+tukey_resultados <- TukeyHSD(modelo_anova, conf.level = 1 - alpha)
+print(tukey_resultados)
+plot(tukey_resultados, las = 1)
+par(mar=c(5.1, 8.1, 4.1, 2.1)) #Ajustar margen izquierdo para que no se amontone
+plot(tukey_resultados, las = 1)
+par(mar=c(5.1, 4.1, 4.1, 2.1)) #Restaurar margen
+
+#Prueba 3: t-Student
+cat("\n\n--- PRUEBA 3: T-STUDENT ---\n")
+resultado_ttest <- t.test(p26 ~ sexo_cat, data = datos_ttest, conf.level = 1 - alpha)
+print(resultado_ttest)
+
+#Valor frontera
+gl_t <- resultado_ttest$parameter
+valor_frontera_t <- qt(1 - alpha/2, df = gl_t)
+cat("\nValor Frontera (Crítico) t: ±", round(valor_frontera_t, 3), "\n")
+
+#Gráfico de Cajas para Prueba t
+print(
+  ggplot(datos_ttest, aes(x = sexo_cat, y = p26, fill = sexo_cat)) +
+    geom_boxplot() +
+    labs(title = "Distribución de Minutos de Lectura por Sexo", x = "Sexo", y = "Minutos de Lectura Continua") +
+    theme_minimal()
+)
+
+#Gráfico de la prueba t
+te <- resultado_ttest$statistic; tf <- valor_frontera_t
+x_t <- seq(-5, 5, length.out = 500); y_t <- dt(x_t, df = gl_t)
+plot(x_t, y_t, type = "l", lwd = 2, main = "Prueba t", xlab = paste("Distribución t con", round(gl_t, 2), "gl"), ylab = "Densidad")
+x_sombreado_sup <- seq(tf, 5, length.out=100); y_sombreado_sup <- dt(x_sombreado_sup, df=gl_t)
+polygon(c(tf, x_sombreado_sup, 5), c(0, y_sombreado_sup, 0), col = rgb(1, 0, 0, 0.3))
+x_sombreado_inf <- seq(-5, -tf, length.out=100); y_sombreado_inf <- dt(x_sombreado_inf, df=gl_t)
+polygon(c(-5, x_sombreado_inf, -tf), c(0, y_sombreado_inf, 0), col = rgb(1, 0, 0, 0.3))
+abline(v = tf, col = "red", lty = 2, lwd = 2); text(tf, max(y_t)*0.4, paste("Frontera\n", round(tf, 2)), pos = 4, col = "red")
+abline(v = -tf, col = "red", lty = 2, lwd = 2); text(-tf, max(y_t)*0.4, paste("Frontera\n", round(-tf, 2)), pos = 2, col = "red")
+abline(v = te, col = "blue", lty = 1, lwd = 2); text(te, max(y_t)*0.8, paste("Estadístico\n t =", round(te, 2)), pos = 2, col = "blue")
+
+
+# INTERVALOS DE CONFIANZA Y GRÁFICAS
+
+# 1. Libros Leídos (Gen Z)
+cat("\n\n--- IC 1: Libros Leídos (Gen Z) ---\n")
+datos_gen_z <- datos_anova %>% filter(Generacion == "Gen Z")
+n <- nrow(datos_gen_z)
+if (n > 1) {
+  media_muestral <- mean(datos_gen_z$p4); s <- sd(datos_gen_z$p4); gl <- n - 1
+  t_critico <- qt(1 - alpha/2, gl)
+  margen_error <- t_critico * s / sqrt(n)
+  cat("Límite Inferior:", round(media_muestral - margen_error, 3), "\n")
+  cat("Límite Superior:", round(media_muestral + margen_error, 3), "\n")
+  print(
+    ggplot(datos_gen_z, aes(y = p4)) + geom_boxplot(fill="skyblue") +
+    labs(title="Distribución de Libros Leídos (Gen Z)", y="Libros Leídos", x="") + theme_minimal()
+  )
+}
+
+# 2. Minutos de Lectura (Campeche)
+cat("\n\n--- IC 2: Minutos de Lectura (Campeche) ---\n")
+n_c <- nrow(datos_campeche)
+if (n_c > 1) {
+  media_muestral_c <- mean(datos_campeche$p26); s_c <- sd(datos_campeche$p26); gl_c <- n_c - 1
+  t_critico_c <- qt(1 - alpha/2, gl_c)
+  margen_error_c <- t_critico_c * s_c / sqrt(n_c)
+  cat("Límite Inferior:", round(media_muestral_c - margen_error_c, 3), "\n")
+  cat("Límite Superior:", round(media_muestral_c + margen_error_c, 3), "\n")
+  print(
+    ggplot(datos_campeche, aes(y = p26)) + geom_boxplot(fill="lightgreen") +
+    labs(title="Distribución de Minutos de Lectura (Campeche)", y="Minutos de Lectura", x="") + theme_minimal()
+  )
+}
+
+# 3. Diferencia de Libros (Doctorado - Profesional) 
+cat("\n\n--- IC 3: Diferencia de Libros (Doctorado - Profesional) ---\n")
+datos_doc <- datos_educacion %>% filter(Nivel_Educativo == "Doctorado")
+datos_prof <- datos_educacion %>% filter(Nivel_Educativo == "Profesional")
+n1 <- nrow(datos_doc); n2 <- nrow(datos_prof)
+if (n1 > 1 && n2 > 1) {
+  media1 <- mean(datos_doc$p4); s1_cuad <- var(datos_doc$p4)
+  media2 <- mean(datos_prof$p4); s2_cuad <- var(datos_prof$p4)
+  diferencia_medias <- media1 - media2
+  error_estandar_dif <- sqrt(s1_cuad/n1 + s2_cuad/n2)
+  num <- (s1_cuad/n1 + s2_cuad/n2)^2; den <- (s1_cuad/n1)^2/(n1-1) + (s2_cuad/n2)^2/(n2-1); gl_dif <- num/den
+  t_critico_dif <- qt(1 - alpha/2, gl_dif)
+  margen_error_dif <- t_critico_dif * error_estandar_dif
+  cat("Límite Inferior:", round(diferencia_medias - margen_error_dif, 3), "\n")
+  cat("Límite Superior:", round(diferencia_medias + margen_error_dif, 3), "\n")
+  print(
+    ggplot(datos_educacion, aes(x = Nivel_Educativo, y = p4, fill = Nivel_Educativo)) + geom_boxplot() +
+    labs(title="Comparación de Libros Leídos (Doctorado vs. Profesional)", y="Libros Leídos") + theme_minimal() + theme(legend.position="none")
+  )
+}
+
+# 4. Proporción de Asistencia a Librerías
+cat("\n\n--- IC 4: Proporción de Asistencia a Librerías ---\n")
+conteo_librerias <- datos %>% filter(asistencia_nino == "Sí lo llevaban" & !is.na(asistio_libreria_reciente))
+n_prop <- nrow(conteo_librerias)
+if (n_prop > 0) {
+    x_prop <- sum(conteo_librerias$asistio_libreria_reciente == "Sí")
+    p_gorro <- x_prop / n_prop
+    z_critico <- qnorm(1 - alpha/2)
+    margen_error_prop <- z_critico * sqrt(p_gorro * (1 - p_gorro) / n_prop)
+    cat("Límite Inferior:", round(p_gorro - margen_error_prop, 3), "\n")
+    cat("Límite Superior:", round(p_gorro + margen_error_prop, 3), "\n")
+    
+    #Crear dataframe para el gráfico de proporción
+    df_prop <- data.frame(
+      Categoria = c("Asistieron", "No Asistieron"),
+      Valor = c(p_gorro, 1 - p_gorro)
+    )
+    print(
+      ggplot(df_prop, aes(x = "", y = Valor, fill = Categoria)) +
+        geom_bar(stat = "identity", width = 1) +
+        coord_polar("y", start = 0) +
+        theme_void() +
+        geom_text(aes(label = paste0(round(Valor*100), "%")), position = position_stack(vjust=0.5)) +
+        labs(title="Proporción de Asistencia a Librerías\n(Entre quienes fueron llevados de niños)")
+    )
+}
+```
+
+
+```{r}
+# VERIFICACIÓN DE SUPUESTOS 
+library(car) #Necesaria para la prueba de Levene
+
+#Supuestos para ANOVA
+cat("--- 1. Supuestos para ANOVA ---\n")
+#Normalidad de los residuos (inspección visual)
+cat("Gráfico Q-Q para la normalidad de los residuos:\n")
+modelo_anova <- aov(p4 ~ Generacion, data = datos_anova)
+plot(modelo_anova, 2)
+
+#Homogeneidad de varianzas (Prueba de Levene)
+cat("\nPrueba de Levene para homogeneidad de varianzas:\n")
+print(leveneTest(p4 ~ as.factor(Generacion), data = datos_anova))
+
+
+#Supuestos para la Prueba t de Student
+cat("\n\n--- 2. Supuestos para la Prueba t de Student ---\n")
+#Homogeneidad de varianzas (Prueba de Levene)
+cat("Prueba de Levene para homogeneidad de varianzas:\n")
+print(leveneTest(p26 ~ as.factor(sexo_cat), data = datos_ttest))
+cat("Nota: La normalidad se asume por el Teorema del Límite Central debido al gran tamaño de la muestra.\n")
+
+
+#Supuestos para la Prueba de Chi-Cuadrada
+cat("\n\n--- 3. Supuestos para la Prueba de Chi-Cuadrada ---\n")
+cat("Tabla de frecuencias esperadas (todas deben ser >= 5):\n")
+prueba_chi <- chisq.test(tabla_observada)
+print(round(prueba_chi$expected, 2))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
