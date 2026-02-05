@@ -1,0 +1,183 @@
+---
+title: "Untitled"
+author: "Lenin Caballero"
+date: "2025-10-14"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+
+setwd("/Users/Elmar/Downloads")
+getwd()
+datos_2024 <- read.csv("Datos_molec_2024-1.csv")
+datos_2023 <- read.csv("Datos_molec_2023-1.csv")
+datos_2022 <- read.csv("Datos_molec_2022-1.csv")
+datos_2021 <- read.csv("Datos_molec_2021-1.csv")
+datos_2020 <- read.csv("Datos_molec_2020-1.csv")
+datos_2019 <- read.csv("Datos_molec_2019-1.csv")
+```
+```{r}
+#Hacer nuevas bases con solo las variables por analizar
+d_2024 <- datos_2024 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2023 <- datos_2023 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2022 <- datos_2022 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2021 <- datos_2021 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2020 <- datos_2020 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+
+d_2019 <- datos_2019 %>% 
+  select(sexo,entidad,edad,nivel,p1,p2,p4,p10,p16,p22,p3_5,p26,p31,p33_3,p33_4,p33_1)
+```
+
+```{r}
+#Añadir columna de año para poder combinar y comparar los datos
+d_2024 <- d_2024 %>% 
+  mutate(anio= 2024)
+
+d_2023 <- d_2023 %>% 
+  mutate(anio= 2023)
+
+d_2022 <- d_2022 %>% 
+  mutate(anio= 2022)
+
+d_2021 <- d_2021 %>% 
+  mutate(anio= 2021)
+
+d_2020 <- d_2020 %>% 
+  mutate(anio= 2020)
+
+d_2019 <- d_2019 %>% 
+  mutate(anio= 2019)
+
+#Combinar todos los años
+datos <- bind_rows(d_2024,d_2023,d_2022,d_2021,d_2020,d_2019)
+```
+```{r}
+#Agrupar por generación
+datos <- datos %>%
+  mutate(
+    anio_de_nacimiento = anio - edad,
+    generacion = case_when(
+      anio_de_nacimiento >= 1997 ~ "Gen Z",
+      anio_de_nacimiento >= 1981 & anio_de_nacimiento <= 1996 ~ "Millennial",
+      anio_de_nacimiento >= 1965 & anio_de_nacimiento <= 1980 ~ "Gen X",
+      anio_de_nacimiento <= 1964 ~ "Boomer"
+    )
+  ) %>%
+  select(-anio_de_nacimiento)
+```
+
+```{r}
+#Reemplazar 1 y 2 con mujer y hombre
+datos <- datos %>%
+  mutate(sexo = case_when(
+    sexo == 1 ~ "Hombre",
+    sexo == 2 ~ "Mujer"
+  ))
+```
+```{r}
+#Crear variables categóricas adicionales
+datos <- datos %>%
+  mutate(
+    nivel_educativo_detallado = case_when(
+      nivel == 0 ~ "Ninguno",
+      nivel == 01 ~ "Preescolar",
+      nivel == 02 ~ "Primaria",
+      nivel == 03 ~ "Secundaria",
+      nivel == 04 ~ "Preparatoria",
+      nivel == 05 ~ "Normal básica",
+      nivel == 06 ~ "Carrera técnica",
+      nivel == 07 ~ "Profesional",
+      nivel == 08 ~ "Maestría",
+      nivel == 09 ~ "Doctorado",
+      nivel == 99 ~ "No sabe"
+    ),
+    asistencia_nino = case_when(
+      p33_1 == "1" ~ "Sí lo llevaban",
+      p33_1 == "2" ~ "No lo llevaban",
+    ),
+    asistio_biblioteca_reciente = case_when(
+      p33_3 == "1" ~ "Sí",
+      p33_3 == "2" ~ "No",
+    ),
+    asistio_libreria_reciente = case_when(
+      p33_4 == "1" ~ "Sí",
+      p33_4 == "2" ~ "No",
+    ),
+    consulta_fuentes = case_when(
+      p31 == "1" ~ "Sí consulta otras fuentes",
+      p31 == "2" ~ "No consulta otras fuentes",
+      TRUE ~ NA_character_
+    )
+  )
+#Formatear entidad
+datos <- datos %>% mutate(entidad = formatC(entidad, width=2, flag="0"))
+
+#Diccionario de entidades
+entidad_nombres <- data.frame(
+  entidad = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
+              "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", 
+              "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", 
+              "31", "32"),
+  nombre_entidad = c("Aguascalientes", "Baja California", "Baja California Sur", "Campeche", 
+                     "Coahuila", "Colima", "Chihuahua", "Chiapas", "Ciudad de México", 
+                     "Durango", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", 
+                     "México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", 
+                     "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", 
+                     "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", 
+                     "Veracruz", "Yucatán", "Zacatecas")
+)
+```
+
+
+
+Plan para la etapa 3
+
+- Probar la normalidad para las pruebas de hipotesis 
+    - Probamos la normalidad de las variables p4 (# de libros leidos), p26 (minutos leidos), edad
+    - Hacemos gráfico para ver el comportamiento 
+   
+
+Intervalos de confianza (4):
+    1.- Media de Libros Leídos
+        - Intervalo para una población 
+        - Usamos distribución normal estandar n>30
+    2.- Diferencia de medias de los minutos de lectura por sexo 
+        - Usamos variable p26 
+        - Definimos intervalo de confianza para 2 poblaciones 
+        - Usamos distribución normal estandar
+        - Comparamos comportamiento lector entre hombre y mujer 
+        
+    3.- Proporción de asistencia a bibliotecas 
+        - Usamos intervalo para una población
+        - Usamos distribución normal 
+        - Con esto vemos que tan disponible o frecuentado es asistir a la biblioteca (mi idea es relacionarlo con la entidad pero lo dejo así para discutir esto)
+        
+    4.- Comparar varianza entre libros leidos por generación Z y milenials
+        - Comparamos p4 entre Gen Z y Millennials
+        - usamos distribución F 
+        
+    
+Pruebas de Hipotesis:
+    1.- Diferencia de Medias, Libros por Sexo
+        H0: μ_hombres = μ_mujeres
+        H1: μ_hombres ≠ μ_mujeres (bilateral) 
+        
+    2.- ANOVA para minutos de lectura entre generaciones 
+        H0: μgenZ = μMilenial = μGenX = μBoomer
+        H1: Una media es diferente 
+        
+
